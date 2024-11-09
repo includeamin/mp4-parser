@@ -1,5 +1,5 @@
 use super::header::BoxHeader;
-use super::{meida::MediaBox, track_header::TrackHeaderBox};
+use super::{media::MediaBox, track_header::TrackHeaderBox};
 
 /// The `TrackBox` struct represents a track in an MP4 file, containing the track header (`tkhd`)
 /// and media (`mdia`) data. It is one of the essential boxes that make up an MP4 file.
