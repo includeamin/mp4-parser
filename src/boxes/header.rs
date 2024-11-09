@@ -1,7 +1,9 @@
 use crate::utils::get_range;
 
+// Constants for range definitions
 const HEADER_SIZE: std::ops::Range<usize> = 0..4;
 const HEADER_NAME: std::ops::Range<usize> = 4..8;
+const EXTENDED_SIZE: std::ops::Range<usize> = 8..16; // Range for extended size (if present)
 
 #[derive(Debug)]
 pub struct BoxHeader {
@@ -39,10 +41,27 @@ impl BoxHeader {
     }
 
     pub fn from_buffer(seek: usize, buffer: &[u8]) -> Self {
-        Self::new(
-            u32::from_be_bytes(buffer[get_range(seek, HEADER_SIZE)].try_into().unwrap()),
-            buffer[get_range(seek, HEADER_NAME)].try_into().unwrap(),
-        )
+        // Read the standard 4-byte size field
+        let size = u32::from_be_bytes(buffer[get_range(seek, HEADER_SIZE)].try_into().unwrap());
+
+        // Read the 4-byte box type
+        let box_type: [u8; 4] = buffer[get_range(seek, HEADER_NAME)].try_into().unwrap();
+
+        // Check if the size is 0xFFFFFFFF, which indicates the presence of extended_size
+        let extended_size = if size == 0xFFFFFFFF {
+            // Read the 8-byte extended size
+            Some(u64::from_be_bytes(
+                buffer[get_range(seek, EXTENDED_SIZE)].try_into().unwrap(),
+            ))
+        } else {
+            None
+        };
+
+        BoxHeader {
+            size,
+            box_type,
+            extended_size,
+        }
     }
 
     pub fn get_box_type(&self) -> String {

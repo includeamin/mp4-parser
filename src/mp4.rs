@@ -1,12 +1,12 @@
-use crate::ftyp::FtypBox;
+use crate::boxes::ftyp::Ftyp;
 
 #[derive(Debug)]
 pub struct MP4 {
-    pub ftyp: Option<FtypBox>,
+    pub ftyp: Option<Ftyp>,
 }
 
 impl MP4 {
-    pub fn new(ftyp: FtypBox) -> Self {
+    pub fn new(ftyp: Ftyp) -> Self {
         Self { ftyp: Some(ftyp) }
     }
 }

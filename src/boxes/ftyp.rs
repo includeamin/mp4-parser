@@ -1,5 +1,5 @@
+use super::header::BoxHeader;
 use crate::{
-    header::BoxHeader,
     shared_consts::CHUNK_SIZE,
     utils::{get_range, ReadHelper},
 };
@@ -10,14 +10,14 @@ const FTYP_MINOR_VERSION: std::ops::Range<usize> = 12..16;
 const FTYP_COMAPTIBLE_BRANDS: std::ops::Range<usize> = 16..32;
 
 #[derive(Debug)]
-pub struct FtypBox {
+pub struct Ftyp {
     header: BoxHeader,               // Size and type at offset 0–7
     major_brand: [u8; 4],            // 4 bytes at offset 8–11 (e.g., "isom", "mp42")
     minor_version: u32,              // 4 bytes at offset 12–15 (usually a version number)
     compatible_brands: Vec<[u8; 4]>, // Each entry is 4 bytes, starts at offset 16
 }
 
-impl FtypBox {
+impl Ftyp {
     pub fn from_buffer(seek: usize, buffer: &[u8]) -> Self {
         let header = BoxHeader::from_buffer(seek, buffer);
         if header.get_box_type() != HEADER_FTYP {
@@ -71,7 +71,7 @@ impl FtypBox {
     }
 }
 
-impl ReadHelper for FtypBox {
+impl ReadHelper for Ftyp {
     fn get_end_range(seek: usize) -> usize {
         seek + FTYP_COMAPTIBLE_BRANDS.end
     }

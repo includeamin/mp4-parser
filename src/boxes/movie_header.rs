@@ -1,0 +1,115 @@
+use crate::utils::get_range;
+
+use super::header::BoxHeader;
+// consts for MovieHeaderBox
+const MOVIE_HEADER_BOX_VERSION: std::ops::Range<usize> = 8..9;
+const MOVIE_HEADER_BOX_FLAGS: std::ops::Range<usize> = 9..12;
+const MOVIE_HEADER_BOX_CREATION_TIME: std::ops::Range<usize> = 12..16;
+const MOVIE_HEADER_BOX_MODIFICATION_TIME: std::ops::Range<usize> = 16..20;
+const MOVIE_HEADER_BOX_TIMESCALE: std::ops::Range<usize> = 20..24;
+const MOVIE_HEADER_BOX_DURATION: std::ops::Range<usize> = 24..28;
+const MOVIE_HEADER_BOX_RATE: std::ops::Range<usize> = 28..32;
+const MOVIE_HEADER_BOX_VOLUME: std::ops::Range<usize> = 32..34;
+const MOVIE_HEADER_BOX_RESERVED: std::ops::Range<usize> = 34..44;
+const MOVIE_HEADER_BOX_MATRIX: std::ops::Range<usize> = 44..80;
+const MOVIE_HEADER_BOX_NEXT_TRACK_ID: std::ops::Range<usize> = 80..84;
+
+#[derive(Debug)]
+pub struct MovieHeaderBox {
+    header: BoxHeader,      // Size and type at offset 0–7
+    version: u8,            // 1 byte at offset 8
+    flags: [u8; 3],         // 3 bytes at offset 9–11
+    creation_time: u32,     // 4 bytes at offset 12–15
+    modification_time: u32, // 4 bytes at offset 16–19
+    timescale: u32,         // 4 bytes at offset 20–23
+    duration: u32,          // 4 bytes at offset 24–27
+    rate: f32,              // 4 bytes at offset 28–31 (16.16 fixed-point)
+    volume: f32,            // 2 bytes at offset 32–33 (8.8 fixed-point)
+    reserved: [u8; 10],     // 10 bytes reserved at offset 34–43
+    matrix: [u32; 9],       // 36 bytes at offset 44–79
+    next_track_id: u32,     // 4 bytes at offset 80–83
+}
+
+impl MovieHeaderBox {
+    pub fn from_buffer(seek: usize, buffer: &[u8]) -> Self {
+        let header = BoxHeader::from_buffer(seek, buffer);
+
+        let version = buffer[get_range(seek, MOVIE_HEADER_BOX_VERSION)][0];
+
+        let flags = [
+            buffer[get_range(seek, MOVIE_HEADER_BOX_FLAGS)][0],
+            buffer[get_range(seek, MOVIE_HEADER_BOX_FLAGS)][1],
+            buffer[get_range(seek, MOVIE_HEADER_BOX_FLAGS)][2],
+        ];
+
+        let creation_time = u32::from_be_bytes(
+            buffer[get_range(seek, MOVIE_HEADER_BOX_CREATION_TIME)]
+                .try_into()
+                .unwrap(),
+        );
+
+        let modification_time = u32::from_be_bytes(
+            buffer[get_range(seek, MOVIE_HEADER_BOX_MODIFICATION_TIME)]
+                .try_into()
+                .unwrap(),
+        );
+
+        let timescale = u32::from_be_bytes(
+            buffer[get_range(seek, MOVIE_HEADER_BOX_TIMESCALE)]
+                .try_into()
+                .unwrap(),
+        );
+
+        let duration = u32::from_be_bytes(
+            buffer[get_range(seek, MOVIE_HEADER_BOX_DURATION)]
+                .try_into()
+                .unwrap(),
+        );
+
+        let rate = f32::from_bits(u32::from_be_bytes(
+            buffer[get_range(seek, MOVIE_HEADER_BOX_RATE)]
+                .try_into()
+                .unwrap(),
+        ));
+
+        let volume = (buffer[get_range(seek, MOVIE_HEADER_BOX_VOLUME)][0] as f32
+            + (buffer[get_range(seek, MOVIE_HEADER_BOX_VOLUME)][1] as f32 / 256.0));
+
+        let mut reserved = [0u8; 10];
+        reserved.copy_from_slice(&buffer[get_range(seek, MOVIE_HEADER_BOX_RESERVED)]);
+
+        let mut matrix = [0u32; 9];
+        for (i, chunk) in matrix.iter_mut().enumerate() {
+            *chunk = u32::from_be_bytes(
+                buffer[get_range(
+                    seek,
+                    MOVIE_HEADER_BOX_MATRIX.start + i * 4
+                        ..MOVIE_HEADER_BOX_MATRIX.start + i * 4 + 4,
+                )]
+                .try_into()
+                .unwrap(),
+            );
+        }
+
+        let next_track_id = u32::from_be_bytes(
+            buffer[get_range(seek, MOVIE_HEADER_BOX_NEXT_TRACK_ID)]
+                .try_into()
+                .unwrap(),
+        );
+
+        MovieHeaderBox {
+            header,
+            version,
+            flags,
+            creation_time,
+            modification_time,
+            timescale,
+            duration,
+            rate,
+            volume,
+            reserved,
+            matrix,
+            next_track_id,
+        }
+    }
+}
