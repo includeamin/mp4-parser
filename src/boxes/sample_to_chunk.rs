@@ -12,6 +12,16 @@ pub struct SampleToChunkBox {
 }
 
 impl SampleToChunkBox {
+    /// Constructs a `SampleToChunkBox` from the provided buffer.
+    ///
+    /// # Arguments
+    ///
+    /// * `seek` - The starting offset for reading the box.
+    /// * `buffer` - The byte slice containing the MP4 data.
+    ///
+    /// # Returns
+    ///
+    /// A `SampleToChunkBox` constructed from the given buffer.
     pub fn from_buffer(seek: usize, buffer: &[u8]) -> Self {
         let header = BoxHeader::from_buffer(seek, buffer);
         let entry_count = u32::from_be_bytes(
@@ -35,5 +45,33 @@ impl SampleToChunkBox {
             entry_count,
             entries,
         }
+    }
+
+    /// Getter for the `header` field.
+    ///
+    /// # Returns
+    ///
+    /// A reference to the `BoxHeader`.
+    pub fn get_header(&self) -> &BoxHeader {
+        &self.header
+    }
+
+    /// Getter for the `entry_count` field.
+    ///
+    /// # Returns
+    ///
+    /// The number of entries in the `SampleToChunkBox`.
+    pub fn get_entry_count(&self) -> u32 {
+        self.entry_count
+    }
+
+    /// Getter for the `entries` field.
+    ///
+    /// # Returns
+    ///
+    /// A reference to the list of entries, where each entry is a tuple
+    /// of (first_chunk, samples_per_chunk, sample_description_index).
+    pub fn get_entries(&self) -> &[(u32, u32, u32)] {
+        &self.entries
     }
 }

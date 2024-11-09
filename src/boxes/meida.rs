@@ -5,10 +5,10 @@ use super::{
 
 #[derive(Debug)]
 pub struct MediaBox {
-    header: BoxHeader, // Size and type at offset 0–7
-    mdhd: MediaHeaderBox,
-    hdlr: HandlerBox,
-    minf: MediaInformationBox,
+    header: BoxHeader,         // Size and type at offset 0–7
+    mdhd: MediaHeaderBox,      // Media header box
+    hdlr: HandlerBox,          // Handler box
+    minf: MediaInformationBox, // Media information box
 }
 
 impl MediaBox {
@@ -24,5 +24,25 @@ impl MediaBox {
             hdlr,
             minf,
         }
+    }
+
+    // Getter for the header
+    pub fn get_header(&self) -> &BoxHeader {
+        &self.header
+    }
+
+    // Getter for the MediaHeaderBox (mdhd)
+    pub fn get_mdhd(&self) -> &MediaHeaderBox {
+        &self.mdhd
+    }
+
+    // Getter for the HandlerBox (hdlr)
+    pub fn get_hdlr(&self) -> &HandlerBox {
+        &self.hdlr
+    }
+
+    // Getter for the MediaInformationBox (minf)
+    pub fn get_minf(&self) -> &MediaInformationBox {
+        &self.minf
     }
 }

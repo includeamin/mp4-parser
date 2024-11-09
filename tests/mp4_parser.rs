@@ -13,6 +13,8 @@ mod tests {
         assert_eq!(
             ftyp.compatible_brands(),
             vec!["mp42", "mp41", "isom", "avc1"]
-        )
+        );
+
+        println!("{:?}", mp4.moov.unwrap().movie_header())
     }
 }

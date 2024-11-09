@@ -1,7 +1,8 @@
 use crate::utils::get_range;
 
 use super::header::BoxHeader;
-// consts for MediaHeaderBox
+
+// Constants for MediaHeaderBox
 const MEDIA_HEADER_BOX_VERSION: std::ops::Range<usize> = 8..9; // 1 byte
 const MEDIA_HEADER_BOX_FLAGS: std::ops::Range<usize> = 9..12; // 3 bytes
 const MEDIA_HEADER_BOX_CREATION_TIME: std::ops::Range<usize> = 12..16; // 4 bytes
@@ -59,5 +60,40 @@ impl MediaHeaderBox {
             timescale,
             duration,
         }
+    }
+
+    // Getter for `version`
+    pub fn get_version(&self) -> u8 {
+        self.version
+    }
+
+    // Getter for `flags`
+    pub fn get_flags(&self) -> [u8; 3] {
+        self.flags
+    }
+
+    // Getter for `creation_time`
+    pub fn get_creation_time(&self) -> u32 {
+        self.creation_time
+    }
+
+    // Getter for `modification_time`
+    pub fn get_modification_time(&self) -> u32 {
+        self.modification_time
+    }
+
+    // Getter for `timescale`
+    pub fn get_timescale(&self) -> u32 {
+        self.timescale
+    }
+
+    // Getter for `duration`
+    pub fn get_duration(&self) -> u32 {
+        self.duration
+    }
+
+    // Getter for `header`
+    pub fn get_header(&self) -> &BoxHeader {
+        &self.header
     }
 }

@@ -26,6 +26,7 @@ impl MP4Parser {
                 boxes::movie::HEADER_MOOV => {
                     let movie = boxes::movie::MovieBox::from_buffer(seek, buffer);
                     println!("{:?}", movie);
+                    mp4.moov = Some(movie);
                     break;
                 }
                 _ => {}

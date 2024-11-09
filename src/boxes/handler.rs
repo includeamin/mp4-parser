@@ -1,4 +1,4 @@
-use crate::utils::{get_range, get_range_from};
+use crate::utils::{get_range, get_range_from, ReadHelper};
 
 use super::header::BoxHeader;
 

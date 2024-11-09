@@ -1,6 +1,6 @@
+use super::header::BoxHeader;
 use crate::utils::get_range;
 
-use super::header::BoxHeader;
 // consts for MovieHeaderBox
 const MOVIE_HEADER_BOX_VERSION: std::ops::Range<usize> = 8..9;
 const MOVIE_HEADER_BOX_FLAGS: std::ops::Range<usize> = 9..12;
@@ -33,7 +33,6 @@ pub struct MovieHeaderBox {
 impl MovieHeaderBox {
     pub fn from_buffer(seek: usize, buffer: &[u8]) -> Self {
         let header = BoxHeader::from_buffer(seek, buffer);
-
         let version = buffer[get_range(seek, MOVIE_HEADER_BOX_VERSION)][0];
 
         let flags = [
@@ -111,5 +110,65 @@ impl MovieHeaderBox {
             matrix,
             next_track_id,
         }
+    }
+
+    // Getter for the header
+    pub fn get_header(&self) -> &BoxHeader {
+        &self.header
+    }
+
+    // Getter for the version
+    pub fn get_version(&self) -> u8 {
+        self.version
+    }
+
+    // Getter for the flags
+    pub fn get_flags(&self) -> &[u8; 3] {
+        &self.flags
+    }
+
+    // Getter for the creation time
+    pub fn get_creation_time(&self) -> u32 {
+        self.creation_time
+    }
+
+    // Getter for the modification time
+    pub fn get_modification_time(&self) -> u32 {
+        self.modification_time
+    }
+
+    // Getter for the timescale
+    pub fn get_timescale(&self) -> u32 {
+        self.timescale
+    }
+
+    // Getter for the duration
+    pub fn get_duration(&self) -> u32 {
+        self.duration
+    }
+
+    // Getter for the rate
+    pub fn get_rate(&self) -> f32 {
+        self.rate
+    }
+
+    // Getter for the volume
+    pub fn get_volume(&self) -> f32 {
+        self.volume
+    }
+
+    // Getter for the reserved field
+    pub fn get_reserved(&self) -> &[u8; 10] {
+        &self.reserved
+    }
+
+    // Getter for the matrix
+    pub fn get_matrix(&self) -> &[u32; 9] {
+        &self.matrix
+    }
+
+    // Getter for the next track ID
+    pub fn get_next_track_id(&self) -> u32 {
+        self.next_track_id
     }
 }

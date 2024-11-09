@@ -1,6 +1,5 @@
-use crate::utils::get_range;
-
 use super::header::BoxHeader;
+use crate::utils::get_range;
 
 // consts for TrackHeaderBox
 const TRACK_HEADER_BOX_VERSION: std::ops::Range<usize> = 8..9; // 1 byte
@@ -40,6 +39,16 @@ pub struct TrackHeaderBox {
 }
 
 impl TrackHeaderBox {
+    /// Constructs a `TrackHeaderBox` from the provided buffer.
+    ///
+    /// # Arguments
+    ///
+    /// * `seek` - The starting offset for reading the box.
+    /// * `buffer` - The byte slice containing the MP4 data.
+    ///
+    /// # Returns
+    ///
+    /// A `TrackHeaderBox` constructed from the given buffer.
     pub fn from_buffer(seek: usize, buffer: &[u8]) -> Self {
         let header = BoxHeader::from_buffer(seek, buffer);
 
@@ -148,5 +157,80 @@ impl TrackHeaderBox {
             width,
             height,
         }
+    }
+
+    // Getter for `version`
+    pub fn get_version(&self) -> u8 {
+        self.version
+    }
+
+    // Getter for `flags`
+    pub fn get_flags(&self) -> &[u8; 3] {
+        &self.flags
+    }
+
+    // Getter for `creation_time`
+    pub fn get_creation_time(&self) -> u32 {
+        self.creation_time
+    }
+
+    // Getter for `modification_time`
+    pub fn get_modification_time(&self) -> u32 {
+        self.modification_time
+    }
+
+    // Getter for `track_id`
+    pub fn get_track_id(&self) -> u32 {
+        self.track_id
+    }
+
+    // Getter for `reserved`
+    pub fn get_reserved(&self) -> u32 {
+        self.reserved
+    }
+
+    // Getter for `duration`
+    pub fn get_duration(&self) -> u32 {
+        self.duration
+    }
+
+    // Getter for `reserved2`
+    pub fn get_reserved2(&self) -> &[u8; 8] {
+        &self.reserved2
+    }
+
+    // Getter for `layer`
+    pub fn get_layer(&self) -> u16 {
+        self.layer
+    }
+
+    // Getter for `alternate_group`
+    pub fn get_alternate_group(&self) -> u16 {
+        self.alternate_group
+    }
+
+    // Getter for `volume`
+    pub fn get_volume(&self) -> f32 {
+        self.volume
+    }
+
+    // Getter for `reserved3`
+    pub fn get_reserved3(&self) -> u16 {
+        self.reserved3
+    }
+
+    // Getter for `matrix`
+    pub fn get_matrix(&self) -> &[u32; 9] {
+        &self.matrix
+    }
+
+    // Getter for `width`
+    pub fn get_width(&self) -> f32 {
+        self.width
+    }
+
+    // Getter for `height`
+    pub fn get_height(&self) -> f32 {
+        self.height
     }
 }

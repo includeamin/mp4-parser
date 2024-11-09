@@ -14,4 +14,14 @@ impl MediaInformationBox {
 
         MediaInformationBox { header, stbl }
     }
+
+    // Getter for the header
+    pub fn get_header(&self) -> &BoxHeader {
+        &self.header
+    }
+
+    // Getter for the stbl (Sample Table Box)
+    pub fn get_stbl(&self) -> &SampleTableBox {
+        &self.stbl
+    }
 }

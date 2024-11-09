@@ -7,9 +7,9 @@ const EXTENDED_SIZE: std::ops::Range<usize> = 8..16; // Range for extended size 
 
 #[derive(Debug)]
 pub struct BoxHeader {
-    pub size: u32,                  // 4 bytes at offset 0; if 1, indicates an extended size
-    pub box_type: [u8; 4], // 4 bytes at offset 4; identifies the box type, e.g., "ftyp", "moov"
-    pub extended_size: Option<u64>, // 8 bytes at offset 8 if `size` is 1, otherwise None
+    size: u32,                  // 4 bytes at offset 0
+    box_type: [u8; 4],          // 4 bytes at offset 4
+    extended_size: Option<u64>, // 8 bytes at offset 8 if size == 0xFFFFFFFF (extended size)
 }
 
 impl BoxHeader {
@@ -49,7 +49,7 @@ impl BoxHeader {
 
         // Check if the size is 0xFFFFFFFF, which indicates the presence of extended_size
         let extended_size = if size == 0xFFFFFFFF {
-            // Read the 8-byte extended size
+            // Read the 8-byte extended size if present
             Some(u64::from_be_bytes(
                 buffer[get_range(seek, EXTENDED_SIZE)].try_into().unwrap(),
             ))
@@ -64,7 +64,18 @@ impl BoxHeader {
         }
     }
 
+    // Getter for `size`
+    pub fn get_size(&self) -> u32 {
+        self.size
+    }
+
+    // Getter for `box_type`
     pub fn get_box_type(&self) -> String {
         String::from_utf8(self.box_type.to_vec()).unwrap()
+    }
+
+    // Getter for `extended_size`
+    pub fn get_extended_size(&self) -> Option<u64> {
+        self.extended_size
     }
 }

@@ -1,6 +1,5 @@
-use crate::utils::{get_range, get_range_from};
-
 use super::header::BoxHeader;
+use crate::utils::{get_range, get_range_from};
 
 const TIME_TO_SAMPLE_BOX_ENTRY_COUNT: std::ops::Range<usize> = 8..12;
 const TIME_TO_SAMPLE_BOX_ENTRIES: std::ops::RangeFrom<usize> = 12..;
@@ -13,6 +12,16 @@ pub struct TimeToSampleBox {
 }
 
 impl TimeToSampleBox {
+    /// Constructs a `TimeToSampleBox` from the provided buffer.
+    ///
+    /// # Arguments
+    ///
+    /// * `seek` - The starting offset for reading the box.
+    /// * `buffer` - The byte slice containing the MP4 data.
+    ///
+    /// # Returns
+    ///
+    /// A `TimeToSampleBox` constructed from the given buffer.
     pub fn from_buffer(seek: usize, buffer: &[u8]) -> Self {
         let header = BoxHeader::from_buffer(seek, buffer);
         let entry_count = u32::from_be_bytes(
@@ -35,5 +44,33 @@ impl TimeToSampleBox {
             entry_count,
             entries,
         }
+    }
+
+    /// Getter for the `header` field.
+    ///
+    /// # Returns
+    ///
+    /// A reference to the `BoxHeader`.
+    pub fn get_header(&self) -> &BoxHeader {
+        &self.header
+    }
+
+    /// Getter for the `entry_count` field.
+    ///
+    /// # Returns
+    ///
+    /// The number of entries in the `TimeToSampleBox`.
+    pub fn get_entry_count(&self) -> u32 {
+        self.entry_count
+    }
+
+    /// Getter for the `entries` field.
+    ///
+    /// # Returns
+    ///
+    /// A reference to the list of entries, where each entry is a tuple
+    /// of (sample_count, duration).
+    pub fn get_entries(&self) -> &[(u32, u32)] {
+        &self.entries
     }
 }
