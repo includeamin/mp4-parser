@@ -8,10 +8,10 @@ const HANDLER_BOX_HANDLER_TYPE: std::ops::Range<usize> = 12..16;
 const HANDLER_BOX_RESERVED: std::ops::Range<usize> = 16..28;
 const HANDLER_BOX_NAME_START: std::ops::RangeFrom<usize> = 28..; // Null-terminated, variable length
 
-const HANDLER_BOX_VERSION_SIZE: usize = 1; // 1 byte at offset 8
-const HANDLER_BOX_FLAGS_SIZE: usize = 3; // 3 bytes at offset 9–11
-const HANDLER_BOX_HANDLER_TYPE_SIZE: usize = 4; // 4 bytes at offset 12–15
-const HANDLER_BOX_RESERVED_SIZE: usize = 12; // 12 bytes at offset 16–27
+// const HANDLER_BOX_VERSION_SIZE: usize = 1; // 1 byte at offset 8
+// const HANDLER_BOX_FLAGS_SIZE: usize = 3; // 3 bytes at offset 9–11
+// const HANDLER_BOX_HANDLER_TYPE_SIZE: usize = 4; // 4 bytes at offset 12–15
+// const HANDLER_BOX_RESERVED_SIZE: usize = 12; // 12 bytes at offset 16–27
 
 /// Represents the `HandlerBox` in an MP4 container file.
 ///
@@ -138,15 +138,102 @@ impl ReadHelper for HandlerBox {
         // Size of the header (BoxHeader)
         let header_size = self.header.total_size();
 
-        // Size of the name (variable length, calculated from the null-terminated string length)
-        let name_size = self.name.len();
-
         // Total size is the sum of all these components
         header_size
-            + HANDLER_BOX_VERSION_SIZE
-            + HANDLER_BOX_FLAGS_SIZE
-            + HANDLER_BOX_HANDLER_TYPE_SIZE
-            + HANDLER_BOX_RESERVED_SIZE
-            + name_size
+            + 1 // version
+            + 1 // null terminator
+            + self.flags.len()
+            + self.handler_type.len()
+            + self.reserved.len()
+            + self.name.len()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // Helper function to create a buffer for a HandlerBox with test data
+    fn create_test_buffer() -> Vec<u8> {
+        let mut buffer = vec![];
+
+        // Mock BoxHeader (assuming 8 bytes total: size (4 bytes), type (4 bytes))
+        buffer.extend_from_slice(&[0, 0, 0, 44]); // size = 44 bytes
+        buffer.extend_from_slice(b"hdlr"); // type = "hdlr"
+
+        // Mock version and flags (4 bytes total)
+        buffer.push(1); // version
+        buffer.extend_from_slice(&[0, 0, 1]); // flags
+
+        // Mock handler_type (4 bytes)
+        buffer.extend_from_slice(b"vide"); // handler_type = "vide"
+
+        // Mock reserved (12 bytes)
+        buffer.extend_from_slice(&[0; 12]); // reserved
+
+        // Mock name (null-terminated string)
+        buffer.extend_from_slice(b"Test Handler");
+        buffer.push(0); // null-terminator
+
+        buffer
+    }
+
+    #[test]
+    fn test_handler_box_from_buffer() {
+        let buffer = create_test_buffer();
+        let handler_box = HandlerBox::from_buffer(&buffer);
+
+        // Verify header
+        assert_eq!(handler_box.header().box_type(), "hdlr");
+        assert_eq!(handler_box.header().size(), 44);
+
+        // Verify version and flags
+        assert_eq!(handler_box.version(), 1);
+        assert_eq!(handler_box.flags(), &[0, 0, 1]);
+
+        // Verify handler type
+        assert_eq!(handler_box.handler_type(), b"vide");
+
+        // Verify reserved
+        assert_eq!(handler_box.reserved(), &[0; 12]);
+
+        // Verify name
+        assert_eq!(handler_box.name(), "Test Handler".to_string());
+    }
+
+    #[test]
+    fn test_handler_box_total_size() {
+        let buffer = create_test_buffer();
+        let handler_box = HandlerBox::from_buffer(&buffer);
+
+        // Expected size = header (8) + version (1) + flags (3) + handler_type (4) + reserved (12) + name ("Test Handler" + null-terminator = 13)
+        let expected_size = 8 + 1 + 3 + 4 + 12 + 13;
+        assert_eq!(handler_box.total_size(), expected_size);
+    }
+
+    #[test]
+    fn test_get_end_range() {
+        let buffer = create_test_buffer();
+        let handler_box = HandlerBox::from_buffer(&buffer);
+
+        // Start position in the buffer
+        let seek = 0;
+        // Expected end range
+        let expected_end_range = handler_box.total_size();
+        assert_eq!(handler_box.get_end_range(seek), expected_end_range);
+    }
+
+    #[test]
+    fn test_name_null_terminated_handling() {
+        // Test with different name lengths and ensure null termination is respected
+        let mut buffer = create_test_buffer();
+
+        // Add extra data beyond the null terminator
+        buffer.extend_from_slice(b"Extra data after null");
+
+        let handler_box = HandlerBox::from_buffer(&buffer);
+
+        // Verify that name extraction stops at the null terminator
+        assert_eq!(handler_box.name(), "Test Handler".to_string());
     }
 }
