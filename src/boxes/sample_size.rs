@@ -9,7 +9,7 @@ const SAMPLE_SIZE_BOX_SAMPLE_COUNT_SIZE: usize = 4; // 4 bytes for sample_count
 const SAMPLE_SIZE_BOX_HEADER_SIZE: usize = 8; // Size of BoxHeader (fixed part)
 const SAMPLE_SIZE_BOX_SAMPLE_SIZE: usize = 4; // 4 bytes per sample size
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct SampleSizeBox {
     header: BoxHeader,      // Size and type at offset 0–7
     sample_count: u32,      // 4 bytes at offset 8–11
@@ -64,7 +64,7 @@ impl ReadHelper for SampleSizeBox {
     }
 
     fn total_size(&self) -> usize {
-        let header_size = self.header.total_size() as usize; // Size of BoxHeader
+        let header_size = self.header.total_size(); // Size of BoxHeader
         let sample_count_size = SAMPLE_SIZE_BOX_SAMPLE_COUNT_SIZE; // Size of sample_count (4 bytes)
         let sample_size = self.sample_sizes.len() * SAMPLE_SIZE_BOX_SAMPLE_SIZE; // Variable size based on sample sizes
 

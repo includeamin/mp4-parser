@@ -5,7 +5,7 @@ const HEADER_SIZE: std::ops::Range<usize> = 0..4;
 const HEADER_NAME: std::ops::Range<usize> = 4..8;
 const EXTENDED_SIZE: std::ops::Range<usize> = 8..16; // Range for extended size (if present)
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct BoxHeader {
     size: u32,                  // 4 bytes at offset 0
     box_type: [u8; 4],          // 4 bytes at offset 4
@@ -71,21 +71,32 @@ impl BoxHeader {
     }
 }
 
-// Implementing ReadHelper trait for BoxHeader
 impl ReadHelper for BoxHeader {
-    /// Calculates the end range of the BoxHeader, based on whether it has an extended size or not.
+    /// Returns the end range (the position of the last byte) based on the `seek` position.
     ///
-    /// The seek parameter represents the start position in the buffer, and the method returns
-    /// the index where the BoxHeader ends in the buffer.
+    /// # Parameters:
+    /// - `seek`: The starting byte position in the buffer where the `BoxHeader` begins.
+    ///
+    /// # Returns:
+    /// The end byte position (inclusive).
     fn get_end_range(&self, seek: usize) -> usize {
-        let total_size = self.total_size();
-        seek + total_size as usize
+        // Calculate the size of the BoxHeader based on whether extended size is used
+        let end_of_header = seek + self.total_size();
+        end_of_header - 1 // Return the last byte position, inclusive
     }
 
-    /// Calculates and returns the total size of the BoxHeader in bytes.
+    /// Returns the total size of the `BoxHeader` in bytes.
     ///
-    /// This considers whether the box uses a standard size (4 bytes) or an extended size (8 bytes).
+    /// # Returns:
+    /// The total size of the `BoxHeader`.
     fn total_size(&self) -> usize {
-        self.total_size() as usize
+        // The size is 4 bytes for the standard size field,
+        // 4 bytes for the box type field,
+        // and 8 bytes for the extended size if the size field is 0xFFFFFFFF.
+        if self.extended_size.is_some() {
+            16 // Extended size is present, so the total size is 16 bytes
+        } else {
+            8 // Only standard size and type fields are present, so the total size is 8 bytes
+        }
     }
 }

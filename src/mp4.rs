@@ -1,6 +1,6 @@
 use crate::boxes::{ftyp::Ftyp, moov::MovieBox};
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct MP4 {
     pub ftyp: Option<Ftyp>,
     pub moov: Option<MovieBox>,
@@ -11,15 +11,6 @@ impl MP4 {
         Self {
             ftyp: Some(ftyp),
             moov: Some(moov),
-        }
-    }
-}
-
-impl Default for MP4 {
-    fn default() -> Self {
-        Self {
-            ftyp: None,
-            moov: None,
         }
     }
 }

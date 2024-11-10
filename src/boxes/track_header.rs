@@ -18,7 +18,7 @@ const TRACK_HEADER_BOX_MATRIX: std::ops::Range<usize> = 48..84; // 36 bytes (9 x
 const TRACK_HEADER_BOX_WIDTH: std::ops::Range<usize> = 84..88; // 4 bytes (16.16 fixed-point)
 const TRACK_HEADER_BOX_HEIGHT: std::ops::Range<usize> = 88..92; // 4 bytes (16.16 fixed-point)
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct TrackHeaderBox {
     header: BoxHeader,      // Size and type at offset 0–7
     version: u8,            // 1 byte at offset 8
@@ -105,8 +105,8 @@ impl TrackHeaderBox {
                 .unwrap(),
         );
 
-        let volume = (buffer[get_range(seek, TRACK_HEADER_BOX_VOLUME)][0] as f32
-            + (buffer[get_range(seek, TRACK_HEADER_BOX_VOLUME)][1] as f32 / 256.0));
+        let volume = buffer[get_range(seek, TRACK_HEADER_BOX_VOLUME)][0] as f32
+            + (buffer[get_range(seek, TRACK_HEADER_BOX_VOLUME)][1] as f32 / 256.0);
 
         let reserved3 = u16::from_be_bytes(
             buffer[get_range(seek, TRACK_HEADER_BOX_RESERVED3)]
@@ -161,7 +161,7 @@ impl TrackHeaderBox {
 
     // Getter fro `header`
     pub fn get_header(&self) -> &BoxHeader {
-        return &self.header;
+        &self.header
     }
 
     // Getter for `version`
@@ -242,32 +242,29 @@ impl TrackHeaderBox {
 
 impl ReadHelper for TrackHeaderBox {
     fn get_end_range(&self, seek: usize) -> usize {
-        // The total size is the sum of the ranges of all fields
-        // The header size is included in BoxHeader, which we can calculate using `get_end_range` on it.
-        let header_size = self.header.get_end_range(seek); // Use header's `get_end_range` to calculate its size
-                                                           // Calculate the total size by adding up the size of all the fields in TrackHeaderBox
-        let total_size = header_size
-            + TRACK_HEADER_BOX_VERSION.end
-            + TRACK_HEADER_BOX_FLAGS.end
-            + TRACK_HEADER_BOX_CREATION_TIME.end
-            + TRACK_HEADER_BOX_MODIFICATION_TIME.end
-            + TRACK_HEADER_BOX_TRACK_ID.end
-            + TRACK_HEADER_BOX_RESERVED.end
-            + TRACK_HEADER_BOX_DURATION.end
-            + TRACK_HEADER_BOX_RESERVED2.end
-            + TRACK_HEADER_BOX_LAYER.end
-            + TRACK_HEADER_BOX_ALTERNATE_GROUP.end
-            + TRACK_HEADER_BOX_VOLUME.end
-            + TRACK_HEADER_BOX_RESERVED3.end
-            + TRACK_HEADER_BOX_MATRIX.end
-            + TRACK_HEADER_BOX_WIDTH.end
-            + TRACK_HEADER_BOX_HEIGHT.end;
-
-        total_size
+        // Calculate the size of all fields, starting from `seek`.
+        seek + self.total_size()
     }
 
     fn total_size(&self) -> usize {
-        // You can return the total size here, which should be the same as get_end_range
-        self.get_end_range(0)
+        // Sum up all field sizes by taking the length of each range
+        let fields_size = TRACK_HEADER_BOX_VERSION.len()
+            + TRACK_HEADER_BOX_FLAGS.len()
+            + TRACK_HEADER_BOX_CREATION_TIME.len()
+            + TRACK_HEADER_BOX_MODIFICATION_TIME.len()
+            + TRACK_HEADER_BOX_TRACK_ID.len()
+            + TRACK_HEADER_BOX_RESERVED.len()
+            + TRACK_HEADER_BOX_DURATION.len()
+            + TRACK_HEADER_BOX_RESERVED2.len()
+            + TRACK_HEADER_BOX_LAYER.len()
+            + TRACK_HEADER_BOX_ALTERNATE_GROUP.len()
+            + TRACK_HEADER_BOX_VOLUME.len()
+            + TRACK_HEADER_BOX_RESERVED3.len()
+            + TRACK_HEADER_BOX_MATRIX.len()
+            + TRACK_HEADER_BOX_WIDTH.len()
+            + TRACK_HEADER_BOX_HEIGHT.len();
+
+        // Include the size of `BoxHeader` as well
+        self.header.total_size() + fields_size
     }
 }

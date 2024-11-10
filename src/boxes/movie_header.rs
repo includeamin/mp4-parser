@@ -14,7 +14,7 @@ const MOVIE_HEADER_BOX_RESERVED: std::ops::Range<usize> = 34..44;
 const MOVIE_HEADER_BOX_MATRIX: std::ops::Range<usize> = 44..80;
 const MOVIE_HEADER_BOX_NEXT_TRACK_ID: std::ops::Range<usize> = 80..84;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct MovieHeaderBox {
     header: BoxHeader,      // Size and type at offset 0–7
     version: u8,            // 1 byte at offset 8
@@ -71,8 +71,8 @@ impl MovieHeaderBox {
                 .unwrap(),
         ));
 
-        let volume = (buffer[get_range(seek, MOVIE_HEADER_BOX_VOLUME)][0] as f32
-            + (buffer[get_range(seek, MOVIE_HEADER_BOX_VOLUME)][1] as f32 / 256.0));
+        let volume = buffer[get_range(seek, MOVIE_HEADER_BOX_VOLUME)][0] as f32
+            + (buffer[get_range(seek, MOVIE_HEADER_BOX_VOLUME)][1] as f32 / 256.0);
 
         let mut reserved = [0u8; 10];
         reserved.copy_from_slice(&buffer[get_range(seek, MOVIE_HEADER_BOX_RESERVED)]);
@@ -173,15 +173,24 @@ impl MovieHeaderBox {
     }
 }
 
-// Implementing the ReadHelper trait for MovieHeaderBox
 impl ReadHelper for MovieHeaderBox {
+    /// Returns the end byte position of this header based on its starting position.
+    ///
+    /// # Parameters
+    /// - `seek`: The starting byte position of this `MovieHeaderBox`.
+    ///
+    /// # Returns
+    /// The end byte position (inclusive) of the `MovieHeaderBox`.
     fn get_end_range(&self, seek: usize) -> usize {
-        // End range is the last byte of the `next_track_id`
-        seek + self.total_size()
+        seek + self.total_size() - 1 // inclusive last byte
     }
 
+    /// Returns the total size of this `MovieHeaderBox` in bytes, including the `BoxHeader` and all fields.
+    ///
+    /// # Returns
+    /// The total byte size of the `MovieHeaderBox`.
     fn total_size(&self) -> usize {
-        // Total size of MovieHeaderBox
+        // Add up the byte ranges defined for `MovieHeaderBox` to calculate the total size.
         MOVIE_HEADER_BOX_NEXT_TRACK_ID.end
     }
 }

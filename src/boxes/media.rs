@@ -5,7 +5,7 @@ use super::{
     handler::HandlerBox, media_header::MediaHeaderBox, media_inforamtion::MediaInformationBox,
 };
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct MediaBox {
     header: BoxHeader,         // Size and type at offset 0–7
     mdhd: MediaHeaderBox,      // Media header box

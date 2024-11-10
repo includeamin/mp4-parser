@@ -12,7 +12,7 @@ const MOVIE_BOX_TRAKS: std::ops::RangeFrom<usize> = 12..; // Variable-length, de
 /// - `header`: Contains the size and type information for the `MovieBox` (`moov`).
 /// - `mvhd`: The `MovieHeaderBox` that contains the movie-level metadata (e.g., timescale, duration).
 /// - `traks`: A vector of `TrackBox`es, each representing a track in the movie (e.g., video, audio).
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct MovieBox {
     header: BoxHeader,    // Size and type at offset 0–7
     mvhd: MovieHeaderBox, // Movie header box containing movie-level metadata

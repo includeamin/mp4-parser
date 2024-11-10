@@ -16,7 +16,7 @@ const HANDLER_BOX_RESERVED_SIZE: usize = 12; // 12 bytes at offset 16–27
 /// Represents the `HandlerBox` in an MP4 container file.
 ///
 /// This box contains information about the handler type (e.g., video, audio) and related metadata.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct HandlerBox {
     header: BoxHeader,     // Size and type at offset 0–7
     version: u8,           // 1 byte at offset 8
@@ -140,7 +140,7 @@ impl ReadHelper for HandlerBox {
     /// The total size of the `HandlerBox` in bytes.
     fn total_size(&self) -> usize {
         // Size of the header (BoxHeader)
-        let header_size = self.header.total_size() as usize;
+        let header_size = self.header.total_size();
 
         // Size of the version (1 byte)
         let version_size = HANDLER_BOX_VERSION_SIZE;

@@ -18,7 +18,7 @@ const MODIFICATION_TIME_SIZE: usize = 4; // 4 bytes
 const TIMESCALE_SIZE: usize = 4; // 4 bytes
 const DURATION_SIZE: usize = 4; // 4 bytes
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct MediaHeaderBox {
     header: BoxHeader,      // Size and type at offset 0–7
     version: u8,            // 1 byte at offset 8
@@ -115,7 +115,7 @@ impl ReadHelper for MediaHeaderBox {
 
     /// Calculates the total size of the MediaHeaderBox in bytes, including the BoxHeader and MediaHeaderBox fields.
     fn total_size(&self) -> usize {
-        let header_size = self.header.total_size() as usize; // Size of the BoxHeader
+        let header_size = self.header.total_size(); // Size of the BoxHeader
         let media_header_size = VERSION_SIZE
             + FLAGS_SIZE
             + CREATION_TIME_SIZE

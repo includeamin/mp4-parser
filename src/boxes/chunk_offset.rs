@@ -11,7 +11,7 @@ const CHUNK_OFFSET_BOX_CHUNK_OFFSETS: std::ops::RangeFrom<usize> = 12..;
 ///
 /// This box contains the number of entries and the chunk offsets, which are used to map
 /// chunk data within the file.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct ChunkOffsetBox {
     header: BoxHeader,       // Size and type at offset 0–7
     entry_count: u32,        // 4 bytes at offset 8–11
@@ -89,7 +89,7 @@ impl ReadHelper for ChunkOffsetBox {
     /// The total size of the `ChunkOffsetBox` in bytes.
     fn total_size(&self) -> usize {
         // Size of the header (BoxHeader)
-        let header_size = self.header.total_size() as usize;
+        let header_size = self.header.total_size();
 
         // Size of the entry count (4 bytes)
         let entry_count_size = SIZE_ENTRY_COUNT;

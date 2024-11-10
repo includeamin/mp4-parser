@@ -25,7 +25,8 @@ impl MP4Parser {
                 }
                 boxes::moov::HEADER_MOOV => {
                     let movie = boxes::moov::MovieBox::from_buffer(seek, buffer);
-                    println!("{:?}", movie);
+                    seek = seek + movie.get_end_range(seek);
+                    println!("{}", seek);
                     mp4.moov = Some(movie);
                     break;
                 }
@@ -33,6 +34,6 @@ impl MP4Parser {
             }
         }
 
-        return mp4;
+        mp4
     }
 }

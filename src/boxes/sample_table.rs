@@ -7,7 +7,7 @@ use super::{
 };
 
 /// Represents the `SampleTableBox` (stbl) in the MP4 file format.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct SampleTableBox {
     header: BoxHeader,          // Size and type at offset 0–7
     stsd: SampleDescriptionBox, // Sample Description Box (stsd)
@@ -110,7 +110,7 @@ impl ReadHelper for SampleTableBox {
 
     /// Calculates the total size of the SampleTableBox in bytes, including the BoxHeader and all sub-boxes.
     fn total_size(&self) -> usize {
-        let header_size = self.header.total_size() as usize; // Size of BoxHeader (fixed part)
+        let header_size = self.header.total_size(); // Size of BoxHeader (fixed part)
         let stsd_size = self.stsd.total_size(); // Size of SampleDescriptionBox
         let stts_size = self.stts.total_size(); // Size of TimeToSampleBox
         let stsc_size = self.stsc.total_size(); // Size of SampleToChunkBox

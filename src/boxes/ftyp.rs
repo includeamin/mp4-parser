@@ -70,7 +70,7 @@ impl Ftyp {
     pub fn compatible_brands(&self) -> Vec<String> {
         let mut compatible_brands = Vec::new();
         for i in self.compatible_brands.clone() {
-            compatible_brands.push(String::from_utf8(i.try_into().unwrap()).unwrap());
+            compatible_brands.push(String::from_utf8(i.into()).unwrap());
         }
 
         compatible_brands
@@ -86,7 +86,7 @@ impl ReadHelper for Ftyp {
 
     fn total_size(&self) -> usize {
         // Size of the header (BoxHeader)
-        let header_size = self.header.total_size() as usize;
+        let header_size = self.header.total_size();
 
         // Size of the major brand (4 bytes)
         let major_brand_size = SIZE_MAJOR_BRAND;

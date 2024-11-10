@@ -9,7 +9,7 @@ const SAMPLE_TO_CHUNK_BOX_ENTRY_COUNT_SIZE: usize = 4; // 4 bytes for entry_coun
 const SAMPLE_TO_CHUNK_BOX_HEADER_SIZE: usize = 8; // Size of BoxHeader (fixed part)
 const SAMPLE_TO_CHUNK_BOX_ENTRY_SIZE: usize = 12;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct SampleToChunkBox {
     header: BoxHeader,             // Size and type at offset 0–7
     entry_count: u32,              // 4 bytes at offset 8–11
@@ -88,7 +88,7 @@ impl ReadHelper for SampleToChunkBox {
     }
 
     fn total_size(&self) -> usize {
-        let header_size = self.header.total_size() as usize; // Size of the BoxHeader
+        let header_size = self.header.total_size(); // Size of the BoxHeader
         let entry_count_size = SAMPLE_TO_CHUNK_BOX_ENTRY_COUNT_SIZE; // Size of entry_count (4 bytes)
         let entry_size = self.entries.len() * SAMPLE_TO_CHUNK_BOX_ENTRY_SIZE; // Variable size based on entries
 

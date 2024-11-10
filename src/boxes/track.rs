@@ -10,7 +10,7 @@ use super::{media::MediaBox, track_header::TrackHeaderBox};
 /// - `header`: Contains the size and type information for the `TrackBox`.
 /// - `tkhd`: The `TrackHeaderBox` that contains metadata about the track (e.g., track ID, duration).
 /// - `mdia`: The `MediaBox` that contains the media data for the track (e.g., sample data, media header).
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct TrackBox {
     header: BoxHeader,    // Size and type at offset 0–7
     tkhd: TrackHeaderBox, // Track header box containing metadata

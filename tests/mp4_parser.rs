@@ -15,6 +15,6 @@ mod tests {
             vec!["mp42", "mp41", "isom", "avc1"]
         );
 
-        println!("{:?}", mp4.moov.unwrap().movie_header())
+        // println!("{:?}", mp4.moov.unwrap().movie_header())
     }
 }
