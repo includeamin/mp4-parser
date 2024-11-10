@@ -43,12 +43,8 @@ impl HandlerBox {
             buffer[HANDLER_BOX_FLAGS][1],
             buffer[HANDLER_BOX_FLAGS][2],
         ];
-        let handler_type = buffer[HANDLER_BOX_HANDLER_TYPE]
-            .try_into()
-            .unwrap();
-        let reserved = buffer[HANDLER_BOX_RESERVED]
-            .try_into()
-            .unwrap();
+        let handler_type = buffer[HANDLER_BOX_HANDLER_TYPE].try_into().unwrap();
+        let reserved = buffer[HANDLER_BOX_RESERVED].try_into().unwrap();
 
         // For `name`, find the null-terminated string starting from `HANDLER_BOX_NAME_START`
         let name_start = HANDLER_BOX_NAME_START.start;

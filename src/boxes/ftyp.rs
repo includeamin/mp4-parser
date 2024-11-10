@@ -23,10 +23,7 @@ pub struct Ftyp {
 impl Ftyp {
     pub fn from_buffer(buffer: &[u8]) -> Self {
         let header = BoxHeader::from_buffer(buffer);
-        let ftyp_data = &buffer[8..];
-
-        let compatible_version = ftyp_data
-            [FTYP_COMAPTIBLE_BRANDS.start..header.get_size() as usize]
+        let compatible_version = buffer[FTYP_COMAPTIBLE_BRANDS.start..header.get_size() as usize]
             .chunks(CHUNK_SIZE)
             .filter_map(|chunk| {
                 if !chunk.is_empty() {
@@ -39,21 +36,10 @@ impl Ftyp {
             })
             .collect::<Vec<[u8; CHUNK_SIZE]>>();
 
-        println!(
-            "{}",
-            u32::from_be_bytes(ftyp_data[FTYP_MINOR_VERSION].try_into().unwrap())
-        );
-
-        // println!("Sliced buffer (bytes):");
-        // for byte in &ftyp_data[FTYP_MINOR_VERSION] {
-        //     print!("{:02X} ", byte);
-        // }
-        // println!(); // for newline after printing the bytes
-
         Self {
             header,
-            major_brand: ftyp_data[FTYP_MAJOR_BRAND].try_into().unwrap(),
-            minor_version: u32::from_be_bytes(ftyp_data[FTYP_MINOR_VERSION].try_into().unwrap()),
+            major_brand: buffer[FTYP_MAJOR_BRAND].try_into().unwrap(),
+            minor_version: u32::from_be_bytes(buffer[FTYP_MINOR_VERSION].try_into().unwrap()),
             compatible_brands: compatible_version,
         }
     }
@@ -100,15 +86,12 @@ mod tests {
     use super::*;
 
     const BUFFER: &[u8] = &[
-        0x00, 0x01, 0x02, 0x03, 0x00, 0x00, 0x00,
-        0x20, // Size field (4 bytes): 32 (0x20) bytes total size
+        0x00, 0x00, 0x00, 0x18, // Size field (4 bytes): 24 bytes total size
         0x66, 0x74, 0x79, 0x70, // Type field ("ftyp")
         0x69, 0x73, 0x6F, 0x6D, // Major Brand ("isom")
         0x00, 0x00, 0x00, 0x01, // Minor Version (1)
         0x6D, 0x70, 0x34, 0x32, // Compatible Brand ("mp42")
         0x69, 0x73, 0x6F, 0x6D, // Compatible Brand ("isom")
-        0x00, 0x00, 0x00, 0x00, // Padding or extra space
-        0x00, 0x00, 0x00, 0x40, // Extended size (64 in this case, 0x40)
         0x00, 0x01, 0x02, 0x03, // Random data after the box
         0x00, 0x01, 0x02, 0x03, 0x00, 0x01, 0x02, 0x03,
     ];
@@ -142,7 +125,7 @@ mod tests {
     #[test]
     fn test_ftyp_total_size() {
         // Create an Ftyp instance from the buffer starting at seek position 4
-        let ftyp = Ftyp::from_buffer( BUFFER);
+        let ftyp = Ftyp::from_buffer(BUFFER);
 
         // The total size should be the sum of the header size, major brand size,
         // minor version size, and compatible brands size.

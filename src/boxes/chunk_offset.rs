@@ -29,11 +29,8 @@ impl ChunkOffsetBox {
     /// A `ChunkOffsetBox` instance populated with data extracted from the buffer.
     pub fn from_buffer(buffer: &[u8]) -> Self {
         let header = BoxHeader::from_buffer(buffer);
-        let entry_count = u32::from_be_bytes(
-            buffer[CHUNK_OFFSET_BOX_ENTRY_COUNT]
-                .try_into()
-                .unwrap(),
-        );
+        let entry_count =
+            u32::from_be_bytes(buffer[CHUNK_OFFSET_BOX_ENTRY_COUNT].try_into().unwrap());
 
         // For chunk_offsets, it's variable-length, so we parse them.
         let chunk_offsets = buffer[CHUNK_OFFSET_BOX_CHUNK_OFFSETS]
