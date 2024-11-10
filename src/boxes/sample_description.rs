@@ -1,9 +1,14 @@
 use super::header::BoxHeader;
-use crate::utils::{get_range, get_range_from};
+use crate::utils::{get_range, get_range_from, ReadHelper};
 
 // Consts for SampleDescriptionBox
 const SAMPLE_DESCRIPTION_BOX_SAMPLE_COUNT: std::ops::Range<usize> = 8..12;
 const SAMPLE_DESCRIPTION_BOX_SAMPLE_DESCRIPTION: std::ops::RangeFrom<usize> = 12..;
+
+// Constants for fixed sizes
+const SAMPLE_DESCRIPTION_BOX_SAMPLE_COUNT_SIZE: usize = 4; // 4 bytes for sample_count
+const SAMPLE_DESCRIPTION_BOX_HEADER_SIZE: usize = 8; // Size of BoxHeader (fixed part)
+const SAMPLE_DESCRIPTION_BOX_SAMPLE_DESCRIPTION_OFFSET: usize = 12; // Start of sample_description
 
 #[derive(Debug)]
 pub struct SampleDescriptionBox {
@@ -49,5 +54,21 @@ impl SampleDescriptionBox {
     // Getter for header
     pub fn get_header(&self) -> &BoxHeader {
         &self.header
+    }
+}
+
+// Implementing ReadHelper trait for SampleDescriptionBox
+impl ReadHelper for SampleDescriptionBox {
+    fn get_end_range(&self, seek: usize) -> usize {
+        seek + self.total_size()
+    }
+
+    fn total_size(&self) -> usize {
+        let header_size = self.header.total_size() as usize; // Size of the BoxHeader
+        let sample_count_size = SAMPLE_DESCRIPTION_BOX_SAMPLE_COUNT_SIZE; // Size of sample_count (4 bytes)
+        let sample_description_size = self.sample_description.len(); // Variable length
+
+        // Total size is the sum of fixed sizes + variable size
+        header_size + sample_count_size + sample_description_size
     }
 }

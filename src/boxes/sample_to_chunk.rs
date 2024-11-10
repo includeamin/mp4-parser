@@ -1,8 +1,13 @@
 use super::header::BoxHeader;
-use crate::utils::{get_range, get_range_from};
+use crate::utils::{get_range, get_range_from, ReadHelper};
 
 const SAMPLE_TO_CHUNK_BOX_ENTRY_COUNT: std::ops::Range<usize> = 8..12;
 const SAMPLE_TO_CHUNK_BOX_ENTRIES: std::ops::RangeFrom<usize> = 12..;
+
+// Constants for fixed sizes
+const SAMPLE_TO_CHUNK_BOX_ENTRY_COUNT_SIZE: usize = 4; // 4 bytes for entry_count
+const SAMPLE_TO_CHUNK_BOX_HEADER_SIZE: usize = 8; // Size of BoxHeader (fixed part)
+const SAMPLE_TO_CHUNK_BOX_ENTRY_SIZE: usize = 12;
 
 #[derive(Debug)]
 pub struct SampleToChunkBox {
@@ -73,5 +78,21 @@ impl SampleToChunkBox {
     /// of (first_chunk, samples_per_chunk, sample_description_index).
     pub fn get_entries(&self) -> &[(u32, u32, u32)] {
         &self.entries
+    }
+}
+
+// Implementing ReadHelper trait for SampleToChunkBox
+impl ReadHelper for SampleToChunkBox {
+    fn get_end_range(&self, seek: usize) -> usize {
+        seek + self.total_size()
+    }
+
+    fn total_size(&self) -> usize {
+        let header_size = self.header.total_size() as usize; // Size of the BoxHeader
+        let entry_count_size = SAMPLE_TO_CHUNK_BOX_ENTRY_COUNT_SIZE; // Size of entry_count (4 bytes)
+        let entry_size = self.entries.len() * SAMPLE_TO_CHUNK_BOX_ENTRY_SIZE; // Variable size based on entries
+
+        // Total size is the sum of fixed sizes + variable size
+        header_size + entry_count_size + entry_size
     }
 }

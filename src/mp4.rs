@@ -1,4 +1,4 @@
-use crate::boxes::{ftyp::Ftyp, movie::MovieBox};
+use crate::boxes::{ftyp::Ftyp, moov::MovieBox};
 
 #[derive(Debug)]
 pub struct MP4 {

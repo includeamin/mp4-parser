@@ -1,4 +1,4 @@
-use crate::utils::get_range;
+use crate::utils::{get_range, ReadHelper};
 
 // Constants for range definitions
 const HEADER_SIZE: std::ops::Range<usize> = 0..4;
@@ -28,15 +28,6 @@ impl BoxHeader {
             size: 1, // Indicates that an extended size is used
             box_type,
             extended_size: Some(extended_size),
-        }
-    }
-
-    /// Calculates the total size of the header in bytes, considering extended size if present.
-    fn total_size(&self) -> u64 {
-        if let Some(ext_size) = self.extended_size {
-            ext_size // 64-bit extended size if specified
-        } else {
-            self.size as u64 // Default 32-bit size
         }
     }
 
@@ -77,5 +68,24 @@ impl BoxHeader {
     // Getter for `extended_size`
     pub fn get_extended_size(&self) -> Option<u64> {
         self.extended_size
+    }
+}
+
+// Implementing ReadHelper trait for BoxHeader
+impl ReadHelper for BoxHeader {
+    /// Calculates the end range of the BoxHeader, based on whether it has an extended size or not.
+    ///
+    /// The seek parameter represents the start position in the buffer, and the method returns
+    /// the index where the BoxHeader ends in the buffer.
+    fn get_end_range(&self, seek: usize) -> usize {
+        let total_size = self.total_size();
+        seek + total_size as usize
+    }
+
+    /// Calculates and returns the total size of the BoxHeader in bytes.
+    ///
+    /// This considers whether the box uses a standard size (4 bytes) or an extended size (8 bytes).
+    fn total_size(&self) -> usize {
+        self.total_size() as usize
     }
 }

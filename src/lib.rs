@@ -20,11 +20,11 @@ impl MP4Parser {
             match header.get_box_type().as_str() {
                 boxes::ftyp::HEADER_FTYP => {
                     let ftyp = boxes::ftyp::Ftyp::from_buffer(seek, buffer);
-                    seek = seek + boxes::ftyp::Ftyp::get_end_range(seek);
+                    seek = seek + ftyp.get_end_range(seek);
                     mp4.ftyp = Some(ftyp)
                 }
-                boxes::movie::HEADER_MOOV => {
-                    let movie = boxes::movie::MovieBox::from_buffer(seek, buffer);
+                boxes::moov::HEADER_MOOV => {
+                    let movie = boxes::moov::MovieBox::from_buffer(seek, buffer);
                     println!("{:?}", movie);
                     mp4.moov = Some(movie);
                     break;

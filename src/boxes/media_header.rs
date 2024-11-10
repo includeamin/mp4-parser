@@ -1,4 +1,4 @@
-use crate::utils::get_range;
+use crate::utils::{get_range, ReadHelper};
 
 use super::header::BoxHeader;
 
@@ -9,6 +9,14 @@ const MEDIA_HEADER_BOX_CREATION_TIME: std::ops::Range<usize> = 12..16; // 4 byte
 const MEDIA_HEADER_BOX_MODIFICATION_TIME: std::ops::Range<usize> = 16..20; // 4 bytes
 const MEDIA_HEADER_BOX_TIMESCALE: std::ops::Range<usize> = 20..24; // 4 bytes
 const MEDIA_HEADER_BOX_DURATION: std::ops::Range<usize> = 24..28; // 4 bytes
+
+// Constants for field sizes
+const VERSION_SIZE: usize = 1; // 1 byte
+const FLAGS_SIZE: usize = 3; // 3 bytes
+const CREATION_TIME_SIZE: usize = 4; // 4 bytes
+const MODIFICATION_TIME_SIZE: usize = 4; // 4 bytes
+const TIMESCALE_SIZE: usize = 4; // 4 bytes
+const DURATION_SIZE: usize = 4; // 4 bytes
 
 #[derive(Debug)]
 pub struct MediaHeaderBox {
@@ -95,5 +103,26 @@ impl MediaHeaderBox {
     // Getter for `header`
     pub fn get_header(&self) -> &BoxHeader {
         &self.header
+    }
+}
+
+// Implementing ReadHelper trait for MediaHeaderBox
+impl ReadHelper for MediaHeaderBox {
+    /// Calculates the end range of the MediaHeaderBox, considering the header and data fields.
+    fn get_end_range(&self, seek: usize) -> usize {
+        seek + self.total_size()
+    }
+
+    /// Calculates the total size of the MediaHeaderBox in bytes, including the BoxHeader and MediaHeaderBox fields.
+    fn total_size(&self) -> usize {
+        let header_size = self.header.total_size() as usize; // Size of the BoxHeader
+        let media_header_size = VERSION_SIZE
+            + FLAGS_SIZE
+            + CREATION_TIME_SIZE
+            + MODIFICATION_TIME_SIZE
+            + TIMESCALE_SIZE
+            + DURATION_SIZE; // Fixed size fields of MediaHeaderBox
+
+        header_size + media_header_size
     }
 }

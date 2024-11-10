@@ -1,8 +1,13 @@
 use super::header::BoxHeader;
-use crate::utils::{get_range, get_range_from};
+use crate::utils::{get_range, get_range_from, ReadHelper};
 
 const TIME_TO_SAMPLE_BOX_ENTRY_COUNT: std::ops::Range<usize> = 8..12;
 const TIME_TO_SAMPLE_BOX_ENTRIES: std::ops::RangeFrom<usize> = 12..;
+
+// Constants for fixed sizes
+const TIME_TO_SAMPLE_BOX_ENTRY_COUNT_SIZE: usize = 4; // 4 bytes for entry_count
+const TIME_TO_SAMPLE_BOX_HEADER_SIZE: usize = 8; // Size of BoxHeader (fixed part)
+const TIME_TO_SAMPLE_BOX_ENTRY_SIZE: usize = 8; // 8 bytes for each entry (sample_count + duration)
 
 #[derive(Debug)]
 pub struct TimeToSampleBox {
@@ -72,5 +77,21 @@ impl TimeToSampleBox {
     /// of (sample_count, duration).
     pub fn get_entries(&self) -> &[(u32, u32)] {
         &self.entries
+    }
+}
+
+// Implementing ReadHelper trait for TimeToSampleBox
+impl ReadHelper for TimeToSampleBox {
+    fn get_end_range(&self, seek: usize) -> usize {
+        seek + self.total_size()
+    }
+
+    fn total_size(&self) -> usize {
+        let header_size = self.header.total_size() as usize; // Size of the BoxHeader
+        let entry_count_size = TIME_TO_SAMPLE_BOX_ENTRY_COUNT_SIZE; // Size of entry_count (4 bytes)
+        let entry_size = self.entries.len() * TIME_TO_SAMPLE_BOX_ENTRY_SIZE; // Variable size based on entries
+
+        // Total size is the sum of fixed sizes + variable size
+        header_size + entry_count_size + entry_size
     }
 }

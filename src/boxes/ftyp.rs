@@ -5,9 +5,15 @@ use crate::{
 };
 
 pub const HEADER_FTYP: &str = "ftyp";
+
 const FTYP_MAJOR_BRAND: std::ops::Range<usize> = 8..12;
 const FTYP_MINOR_VERSION: std::ops::Range<usize> = 12..16;
 const FTYP_COMAPTIBLE_BRANDS: std::ops::Range<usize> = 16..32;
+
+// Constants for sizes
+const SIZE_MAJOR_BRAND: usize = 4;
+const SIZE_MINOR_VERSION: usize = 4;
+const SIZE_COMPATIBLE_BRAND_ENTRY: usize = 4;
 
 #[derive(Debug)]
 pub struct Ftyp {
@@ -62,17 +68,36 @@ impl Ftyp {
     }
 
     pub fn compatible_brands(&self) -> Vec<String> {
-        let mut compatible_brans = Vec::new();
+        let mut compatible_brands = Vec::new();
         for i in self.compatible_brands.clone() {
-            compatible_brans.push(String::from_utf8(i.try_into().unwrap()).unwrap());
+            compatible_brands.push(String::from_utf8(i.try_into().unwrap()).unwrap());
         }
 
-        compatible_brans
+        compatible_brands
     }
 }
 
+/// Implementation of `ReadHelper` trait for `Ftyp` to calculate the end index of the box and total size.
 impl ReadHelper for Ftyp {
-    fn get_end_range(seek: usize) -> usize {
-        seek + FTYP_COMAPTIBLE_BRANDS.end
+    fn get_end_range(&self, seek: usize) -> usize {
+        // Use the `total_size` method to calculate the end index of the box
+        seek + self.total_size()
+    }
+
+    fn total_size(&self) -> usize {
+        // Size of the header (BoxHeader)
+        let header_size = self.header.total_size() as usize;
+
+        // Size of the major brand (4 bytes)
+        let major_brand_size = SIZE_MAJOR_BRAND;
+
+        // Size of the minor version (4 bytes)
+        let minor_version_size = SIZE_MINOR_VERSION;
+
+        // Size of compatible brands (each entry is 4 bytes)
+        let compatible_brands_size = self.compatible_brands.len() * SIZE_COMPATIBLE_BRAND_ENTRY;
+
+        // Total size is the sum of all these components
+        header_size + major_brand_size + minor_version_size + compatible_brands_size
     }
 }

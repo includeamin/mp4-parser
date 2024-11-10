@@ -1,3 +1,5 @@
+use crate::utils::ReadHelper;
+
 use super::header::BoxHeader;
 use super::{
     handler::HandlerBox, media_header::MediaHeaderBox, media_inforamtion::MediaInformationBox,
@@ -44,5 +46,23 @@ impl MediaBox {
     // Getter for the MediaInformationBox (minf)
     pub fn get_minf(&self) -> &MediaInformationBox {
         &self.minf
+    }
+}
+
+// Implementing ReadHelper trait for MediaBox
+impl ReadHelper for MediaBox {
+    /// Calculates the end range of the MediaBox, considering all sub-boxes.
+    fn get_end_range(&self, seek: usize) -> usize {
+        seek + self.total_size() // Return the end position after considering total size
+    }
+
+    /// Calculates the total size of the MediaBox in bytes, including the BoxHeader and all sub-boxes.
+    fn total_size(&self) -> usize {
+        let header_size = self.header.total_size(); // Size of BoxHeader (fixed part)
+        let mdhd_size = self.mdhd.total_size(); // Size of MediaHeaderBox
+        let hdlr_size = self.hdlr.total_size(); // Size of HandlerBox
+        let minf_size = self.minf.total_size(); // Size of MediaInformationBox
+
+        header_size + mdhd_size + hdlr_size + minf_size // Total size
     }
 }

@@ -1,5 +1,5 @@
 use super::header::BoxHeader;
-use crate::utils::get_range;
+use crate::utils::{get_range, ReadHelper};
 
 // consts for MovieHeaderBox
 const MOVIE_HEADER_BOX_VERSION: std::ops::Range<usize> = 8..9;
@@ -170,5 +170,18 @@ impl MovieHeaderBox {
     // Getter for the next track ID
     pub fn get_next_track_id(&self) -> u32 {
         self.next_track_id
+    }
+}
+
+// Implementing the ReadHelper trait for MovieHeaderBox
+impl ReadHelper for MovieHeaderBox {
+    fn get_end_range(&self, seek: usize) -> usize {
+        // End range is the last byte of the `next_track_id`
+        seek + self.total_size()
+    }
+
+    fn total_size(&self) -> usize {
+        // Total size of MovieHeaderBox
+        MOVIE_HEADER_BOX_NEXT_TRACK_ID.end
     }
 }

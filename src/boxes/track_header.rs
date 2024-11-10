@@ -1,5 +1,5 @@
 use super::header::BoxHeader;
-use crate::utils::get_range;
+use crate::utils::{get_range, ReadHelper};
 
 // consts for TrackHeaderBox
 const TRACK_HEADER_BOX_VERSION: std::ops::Range<usize> = 8..9; // 1 byte
@@ -159,6 +159,11 @@ impl TrackHeaderBox {
         }
     }
 
+    // Getter fro `header`
+    pub fn get_header(&self) -> &BoxHeader {
+        return &self.header;
+    }
+
     // Getter for `version`
     pub fn get_version(&self) -> u8 {
         self.version
@@ -232,5 +237,37 @@ impl TrackHeaderBox {
     // Getter for `height`
     pub fn get_height(&self) -> f32 {
         self.height
+    }
+}
+
+impl ReadHelper for TrackHeaderBox {
+    fn get_end_range(&self, seek: usize) -> usize {
+        // The total size is the sum of the ranges of all fields
+        // The header size is included in BoxHeader, which we can calculate using `get_end_range` on it.
+        let header_size = self.header.get_end_range(seek); // Use header's `get_end_range` to calculate its size
+                                                           // Calculate the total size by adding up the size of all the fields in TrackHeaderBox
+        let total_size = header_size
+            + TRACK_HEADER_BOX_VERSION.end
+            + TRACK_HEADER_BOX_FLAGS.end
+            + TRACK_HEADER_BOX_CREATION_TIME.end
+            + TRACK_HEADER_BOX_MODIFICATION_TIME.end
+            + TRACK_HEADER_BOX_TRACK_ID.end
+            + TRACK_HEADER_BOX_RESERVED.end
+            + TRACK_HEADER_BOX_DURATION.end
+            + TRACK_HEADER_BOX_RESERVED2.end
+            + TRACK_HEADER_BOX_LAYER.end
+            + TRACK_HEADER_BOX_ALTERNATE_GROUP.end
+            + TRACK_HEADER_BOX_VOLUME.end
+            + TRACK_HEADER_BOX_RESERVED3.end
+            + TRACK_HEADER_BOX_MATRIX.end
+            + TRACK_HEADER_BOX_WIDTH.end
+            + TRACK_HEADER_BOX_HEIGHT.end;
+
+        total_size
+    }
+
+    fn total_size(&self) -> usize {
+        // You can return the total size here, which should be the same as get_end_range
+        self.get_end_range(0)
     }
 }

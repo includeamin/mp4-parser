@@ -5,7 +5,7 @@ pub mod header;
 pub mod media;
 pub mod media_header;
 pub mod media_inforamtion;
-pub mod movie;
+pub mod moov;
 pub mod movie_header;
 pub mod sample_description;
 pub mod sample_size;
