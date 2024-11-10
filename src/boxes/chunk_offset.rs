@@ -98,3 +98,76 @@ impl ReadHelper for ChunkOffsetBox {
         header_size + entry_count_size + chunk_offsets_size
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_chunk_offset_box_from_buffer() {
+        // Define a buffer that includes a BoxHeader, entry count, and chunk offsets.
+        let buffer: &[u8] = &[
+            // BoxHeader: size = 28, type = "stco"
+            0x00, 0x00, 0x00, 0x1C, // Size field (4 bytes)
+            0x73, 0x74, 0x63, 0x6F, // Type field "stco" (4 bytes)
+            // Entry count = 2
+            0x00, 0x00, 0x00, 0x02, // Entry count (4 bytes)
+            // Chunk offsets
+            0x00, 0x00, 0x00, 0x10, // First chunk offset (4 bytes)
+            0x00, 0x00, 0x00, 0x20, // Second chunk offset (4 bytes)
+        ];
+
+        // Parse the buffer
+        let chunk_offset_box = ChunkOffsetBox::from_buffer(buffer);
+
+        // Check header
+        assert_eq!(chunk_offset_box.header().size(), 28);
+        assert_eq!(chunk_offset_box.header().box_type(), "stco");
+
+        // Check entry count
+        assert_eq!(chunk_offset_box.entry_count(), 2);
+
+        // Check chunk offsets
+        let expected_offsets = vec![16, 32];
+        assert_eq!(chunk_offset_box.chunk_offsets(), &expected_offsets);
+    }
+
+    #[test]
+    fn test_chunk_offset_box_total_size() {
+        // Define a buffer similar to the one above
+        let buffer: &[u8] = &[
+            0x00, 0x00, 0x00, 0x1C, // Size field
+            0x73, 0x74, 0x63, 0x6F, // Type "stco"
+            0x00, 0x00, 0x00, 0x02, // Entry count = 2
+            0x00, 0x00, 0x00, 0x10, // Chunk offset 1
+            0x00, 0x00, 0x00, 0x20, // Chunk offset 2
+        ];
+
+        let chunk_offset_box = ChunkOffsetBox::from_buffer(buffer);
+
+        // Calculate expected total size: header size (8) + entry count size (4) + 2 chunk offsets (8)
+        let expected_total_size = 8 + 4 + 2 * SIZE_CHUNK_OFFSET_ENTRY;
+        assert_eq!(chunk_offset_box.total_size(), expected_total_size);
+    }
+
+    #[test]
+    fn test_chunk_offset_box_get_end_range() {
+        let buffer: &[u8] = &[
+            0x00, 0x00, 0x00, 0x1C, // Size field
+            0x73, 0x74, 0x63, 0x6F, // Type "stco"
+            0x00, 0x00, 0x00, 0x02, // Entry count = 2
+            0x00, 0x00, 0x00, 0x10, // Chunk offset 1
+            0x00, 0x00, 0x00, 0x20, // Chunk offset 2
+        ];
+
+        let chunk_offset_box = ChunkOffsetBox::from_buffer(buffer);
+        let seek_position = 0;
+
+        // Expected end range: seek position + total size
+        let expected_end_range = seek_position + chunk_offset_box.total_size();
+        assert_eq!(
+            chunk_offset_box.get_end_range(seek_position),
+            expected_end_range
+        );
+    }
+}

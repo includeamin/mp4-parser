@@ -23,7 +23,7 @@ pub struct Ftyp {
 impl Ftyp {
     pub fn from_buffer(buffer: &[u8]) -> Self {
         let header = BoxHeader::from_buffer(buffer);
-        let compatible_version = buffer[FTYP_COMAPTIBLE_BRANDS.start..header.get_size() as usize]
+        let compatible_version = buffer[FTYP_COMAPTIBLE_BRANDS.start..header.size() as usize]
             .chunks(CHUNK_SIZE)
             .filter_map(|chunk| {
                 if !chunk.is_empty() {

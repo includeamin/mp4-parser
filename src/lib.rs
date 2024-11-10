@@ -16,8 +16,8 @@ impl MP4Parser {
         loop {
             println!("---- seek at {} -----", seek);
             let header = BoxHeader::from_buffer(buffer);
-            println!("detected header: {}", header.get_box_type());
-            match header.get_box_type().as_str() {
+            println!("detected header: {}", header.box_type());
+            match header.box_type().as_str() {
                 boxes::ftyp::HEADER_FTYP => {
                     let ftyp = boxes::ftyp::Ftyp::from_buffer(buffer);
                     seek = seek + ftyp.get_end_range(seek);

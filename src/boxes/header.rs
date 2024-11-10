@@ -38,17 +38,17 @@ impl BoxHeader {
     }
 
     // Getter for `size`
-    pub fn get_size(&self) -> u32 {
+    pub fn size(&self) -> u32 {
         self.size
     }
 
     // Getter for `box_type`
-    pub fn get_box_type(&self) -> String {
+    pub fn box_type(&self) -> String {
         String::from_utf8(self.box_type.to_vec()).unwrap()
     }
 
     // Getter for `extended_size`
-    pub fn get_extended_size(&self) -> Option<u64> {
+    pub fn extended_size(&self) -> Option<u64> {
         self.extended_size
     }
 }
@@ -95,9 +95,9 @@ mod tests {
         let box_header = BoxHeader::from_buffer(&buffer);
 
         // Validate fields
-        assert_eq!(box_header.get_size(), 8);
-        assert_eq!(box_header.get_box_type(), "stco");
-        assert_eq!(box_header.get_extended_size(), None);
+        assert_eq!(box_header.size(), 8);
+        assert_eq!(box_header.box_type(), "stco");
+        assert_eq!(box_header.extended_size(), None);
         assert_eq!(box_header.total_size(), 8);
         assert_eq!(box_header.get_end_range(0), 8); // last byte position
     }
@@ -114,9 +114,9 @@ mod tests {
         let box_header = BoxHeader::from_buffer(&buffer);
 
         // Validate fields
-        assert_eq!(box_header.get_size(), 0xFFFFFFFF);
-        assert_eq!(box_header.get_box_type(), "stco");
-        assert_eq!(box_header.get_extended_size(), Some(32));
+        assert_eq!(box_header.size(), 0xFFFFFFFF);
+        assert_eq!(box_header.box_type(), "stco");
+        assert_eq!(box_header.extended_size(), Some(32));
         assert_eq!(box_header.total_size(), 16);
         assert_eq!(box_header.get_end_range(0), 16); // last byte position
     }
