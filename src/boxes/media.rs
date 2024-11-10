@@ -1,5 +1,3 @@
-use crate::utils::ReadHelper;
-
 use super::header::BoxHeader;
 use super::{
     handler::HandlerBox, media_header::MediaHeaderBox, media_inforamtion::MediaInformationBox,
@@ -49,18 +47,75 @@ impl MediaBox {
     }
 }
 
-// Implementing ReadHelper trait for MediaBox
-impl ReadHelper for MediaBox {
-    /// Calculates the end range of the MediaBox, considering all sub-boxes.
-    fn get_end_range(&self, seek: usize) -> usize {
-        seek + self.total_size() // Return the end position after considering total size
-    }
-
-    /// Calculates the total size of the MediaBox in bytes, including the BoxHeader and all sub-boxes.
-    fn total_size(&self) -> usize {
-        self.header.total_size()
-            + self.mdhd.total_size()
-            + self.hdlr.total_size()
-            + self.minf.total_size() // Total size
-    }
-}
+//
+//
+// #[cfg(test)]
+// mod tests {
+//     use super::*;
+//     use crate::header::BoxHeader;
+//     use crate::handler::HandlerBox;
+//     use crate::media_header::MediaHeaderBox;
+//     use crate::media_inforamtion::MediaInformationBox;
+//
+//     #[test]
+//     fn test_media_box_from_buffer() {
+//         let buffer: &[u8] = &[
+//             // Mock BoxHeader for MediaBox (8 bytes)
+//             0x00, 0x00, 0x00, 0x58, // size = 88 bytes (0x58)
+//             b'm', b'd', b'i', b'a',  // type = "mdia"
+//             // Mock MediaHeaderBox (mdhd)
+//             0x00, 0x00, 0x00, 0x20, // mdhd size
+//             b'm', b'd', b'h', b'd',  // type = "mdhd"
+//             // MediaHeaderBox content (e.g., version, flags, and other fields)
+//             0x00,                    // version
+//             0x00, 0x00, 0x03,        // flags
+//             0x00, 0x00, 0x00, 0x02,  // other mdhd fields...
+//
+//             // Mock HandlerBox (hdlr)
+//             0x00, 0x00, 0x00, 0x30, // hdlr size
+//             b'h', b'd', b'l', b'r',  // type = "hdlr"
+//             0x01,                    // version
+//             0x00, 0x00, 0x01,        // flags
+//             b'v', b'i', b'd', b'e',   // handler_type = "vide"
+//             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // reserved
+//             b'T', b'e', b's', b't', b' ', b'H', b'a', b'n', b'd', b'l', b'e', b'r', 0, // name
+//
+//             // Mock MediaInformationBox (minf)
+//             0x00, 0x00, 0x00, 0x10, // minf size
+//             b'm', b'i', b'n', b'f',  // type = "minf"
+//             // MediaInformationBox content
+//             0x00, 0x00, 0x00, 0x00, // additional fields (example)
+//         ];
+//
+//         let media_box = MediaBox::from_buffer(buffer);
+//
+//         // Test MediaBox header
+//         assert_eq!(media_box.get_header().box_type, *b"mdia");
+//         assert_eq!(media_box.get_header().size, 88);
+//
+//         // Test MediaHeaderBox (mdhd)
+//         let mdhd = media_box.get_mdhd();
+//         assert_eq!(mdhd.header.box_type, *b"mdhd");
+//         assert_eq!(mdhd.header.size, 32);
+//         assert_eq!(mdhd.version, 0);
+//         assert_eq!(mdhd.flags, [0, 0, 3]);
+//
+//         // Test HandlerBox (hdlr)
+//         let hdlr = media_box.get_hdlr();
+//         assert_eq!(hdlr.header.box_type, *b"hdlr");
+//         assert_eq!(hdlr.header.size, 48);
+//         assert_eq!(hdlr.version, 1);
+//         assert_eq!(hdlr.flags, [0, 0, 1]);
+//         assert_eq!(hdlr.handler_type, *b"vide");
+//         assert_eq!(hdlr.name(), "Test Handler");
+//
+//         // Test MediaInformationBox (minf)
+//         let minf = media_box.get_minf();
+//         assert_eq!(minf.header.box_type, *b"minf");
+//         assert_eq!(minf.header.size, 16);
+//
+//         // Test total size and end range
+//         assert_eq!(media_box.total_size(), 88);
+//         assert_eq!(media_box.get_end_range(0), 88);
+//     }
+// }

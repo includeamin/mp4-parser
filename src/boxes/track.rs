@@ -1,5 +1,3 @@
-use crate::utils::ReadHelper;
-
 use super::header::BoxHeader;
 use super::{media::MediaBox, track_header::TrackHeaderBox};
 
@@ -72,31 +70,5 @@ impl TrackBox {
     /// The duration of the track in seconds (`u32`).
     pub fn duration(&self) -> u32 {
         self.tkhd.get_duration()
-    }
-}
-
-impl ReadHelper for TrackBox {
-    /// Returns the end range (the position of the last byte) based on the `seek` position.
-    ///
-    /// # Parameters:
-    /// - `seek`: The starting byte position in the buffer where the `TrackBox` begins.
-    ///
-    /// # Returns:
-    /// The end byte position (inclusive).
-    fn get_end_range(&self, seek: usize) -> usize {
-        // Calculate the total size by summing the sizes of the header, tkhd, and mdia
-        let end_of_header = seek + self.header.total_size();
-        let end_of_tkhd = end_of_header + self.tkhd.total_size();
-        let end_of_mdia = end_of_tkhd + self.mdia.total_size();
-
-        end_of_mdia - 1 // Return the last byte position, inclusive
-    }
-
-    /// Returns the total size of the `TrackBox` in bytes.
-    ///
-    /// # Returns:
-    /// The total size of the `TrackBox`.
-    fn total_size(&self) -> usize {
-        self.header.total_size() + self.tkhd.total_size() + self.mdia.total_size()
     }
 }

@@ -1,5 +1,4 @@
 use super::header::BoxHeader;
-use crate::utils::{get_range, get_range_from, ReadHelper};
 
 const SAMPLE_SIZE_BOX_SAMPLE_COUNT: std::ops::Range<usize> = 8..12;
 const SAMPLE_SIZE_BOX_SAMPLE_SIZES: std::ops::RangeFrom<usize> = 12..;
@@ -53,21 +52,5 @@ impl SampleSizeBox {
     // Getter for header
     pub fn get_header(&self) -> &BoxHeader {
         &self.header
-    }
-}
-
-// Implementing ReadHelper trait for SampleSizeBox
-impl ReadHelper for SampleSizeBox {
-    fn get_end_range(&self, seek: usize) -> usize {
-        seek + self.total_size()
-    }
-
-    fn total_size(&self) -> usize {
-        let header_size = self.header.total_size(); // Size of BoxHeader
-        let sample_count_size = SAMPLE_SIZE_BOX_SAMPLE_COUNT_SIZE; // Size of sample_count (4 bytes)
-        let sample_size = self.sample_sizes.len() * SAMPLE_SIZE_BOX_SAMPLE_SIZE; // Variable size based on sample sizes
-
-        // Total size is the sum of fixed sizes + variable size
-        header_size + sample_count_size + sample_size
     }
 }

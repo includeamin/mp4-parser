@@ -5,7 +5,6 @@ mod utils;
 
 use boxes::header::BoxHeader;
 use mp4::MP4;
-use utils::ReadHelper;
 
 pub struct MP4Parser {}
 
@@ -20,13 +19,13 @@ impl MP4Parser {
             match header.box_type().as_str() {
                 boxes::ftyp::HEADER_FTYP => {
                     let ftyp = boxes::ftyp::Ftyp::from_buffer(buffer);
-                    seek = seek + ftyp.get_end_range(seek);
+                    seek += ftyp.header().size();
                     mp4.ftyp = Some(ftyp)
                 }
                 boxes::moov::HEADER_MOOV => {
                     let movie = boxes::moov::MovieBox::from_buffer(buffer);
                     println!("{:?}", movie);
-                    seek = seek + movie.get_end_range(seek);
+                    seek += movie.header().size();
                     println!("{}", seek);
                     mp4.moov = Some(movie);
                 }

@@ -1,5 +1,3 @@
-use crate::utils::{get_range, get_start_seek, ReadHelper};
-
 // Constants for range definitions
 const HEADER_SIZE: std::ops::Range<usize> = 0..4;
 const HEADER_NAME: std::ops::Range<usize> = 4..8;
@@ -38,8 +36,8 @@ impl BoxHeader {
     }
 
     // Getter for `size`
-    pub fn size(&self) -> u32 {
-        self.size
+    pub fn size(&self) -> usize {
+        self.size as usize
     }
 
     // Getter for `box_type`
@@ -53,36 +51,9 @@ impl BoxHeader {
     }
 }
 
-impl ReadHelper for BoxHeader {
-    /// Returns the end range (the position of the last byte) based on the `seek` position.
-    ///
-    /// # Parameters:
-    /// - `seek`: The starting byte position in the buffer where the `BoxHeader` begins.
-    ///
-    /// # Returns:
-    /// The end byte position (inclusive).
-    fn get_end_range(&self, seek: usize) -> usize {
-        // Calculate the size of the BoxHeader based on whether extended size is used
-        seek + self.total_size()
-    }
-
-    /// Returns the total size of the `BoxHeader` in bytes.
-    ///
-    /// # Returns:
-    /// The total size of the `BoxHeader`.
-    fn total_size(&self) -> usize {
-        if self.extended_size.is_some() {
-            16 // Extended size is present, so the total size is 16 bytes
-        } else {
-            8 // Only standard size and type fields are present, so the total size is 8 bytes
-        }
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::utils::{get_range, ReadHelper};
 
     #[test]
     fn test_box_header_from_buffer_standard_size() {
@@ -98,17 +69,22 @@ mod tests {
         assert_eq!(box_header.size(), 8);
         assert_eq!(box_header.box_type(), "stco");
         assert_eq!(box_header.extended_size(), None);
-        assert_eq!(box_header.total_size(), 8);
-        assert_eq!(box_header.get_end_range(0), 8); // last byte position
+        assert_eq!(box_header.size(), 8);
     }
 
     #[test]
     fn test_box_header_from_buffer_extended_size() {
         // Mock data buffer for a BoxHeader with extended size
         let buffer: Vec<u8> = vec![
-            0xFF, 0xFF, 0xFF, 0xFF, // size: 0xFFFFFFFF (indicating extended size)
-            0x73, 0x74, 0x63, 0x6f, // box_type: "stco"
-            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x20, // extended_size: 32
+            0xFF, 0xFF, 0xFF, 0xFF, // Size field indicating extended size
+            0x73, 0x74, 0x63, 0x6F, // Box type "stco" (4 bytes)
+            // Extended size: 48 bytes
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x30, // Actual box size (48 bytes)
+            // Entry count: 2 (4 bytes)
+            0x00, 0x00, 0x00, 0x02, // entry_count = 2
+            // Chunk offsets: 2 entries (each 4 bytes)
+            0x00, 0x00, 0x00, 0x10, // Chunk offset 1 (16 bytes)
+            0x00, 0x00, 0x00, 0x20, // Chunk offset 2 (32 bytes)
         ];
 
         let box_header = BoxHeader::from_buffer(&buffer);
@@ -116,9 +92,8 @@ mod tests {
         // Validate fields
         assert_eq!(box_header.size(), 0xFFFFFFFF);
         assert_eq!(box_header.box_type(), "stco");
-        assert_eq!(box_header.extended_size(), Some(32));
-        assert_eq!(box_header.total_size(), 16);
-        assert_eq!(box_header.get_end_range(0), 16); // last byte position
+        assert_eq!(box_header.extended_size(), Some(48));
+        assert_eq!(box_header.size(), 4294967295);
     }
 
     #[test]
@@ -129,7 +104,7 @@ mod tests {
         ];
 
         let box_header = BoxHeader::from_buffer(&buffer);
-        assert_eq!(box_header.total_size(), 8);
+        assert_eq!(box_header.size(), 8);
     }
 
     #[test]
@@ -141,6 +116,6 @@ mod tests {
         ];
 
         let box_header = BoxHeader::from_buffer(&buffer);
-        assert_eq!(box_header.total_size(), 16);
+        assert_eq!(box_header.size(), 4294967295);
     }
 }

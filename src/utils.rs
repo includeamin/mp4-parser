@@ -16,8 +16,3 @@ pub fn get_start_seek(seek: usize) -> usize {
 
     0
 }
-
-pub trait ReadHelper {
-    fn get_end_range(&self, seek: usize) -> usize;
-    fn total_size(&self) -> usize;
-}

@@ -1,5 +1,4 @@
 use super::header::BoxHeader;
-use crate::utils::{get_range, get_range_from, ReadHelper};
 
 // Constants for sizes
 const SIZE_ENTRY_COUNT: usize = 4; // Size of the entry count (4 bytes)
@@ -70,35 +69,6 @@ impl ChunkOffsetBox {
     }
 }
 
-/// Implementation of `ReadHelper` trait for `ChunkOffsetBox` to calculate the end index of the box.
-impl ReadHelper for ChunkOffsetBox {
-    fn get_end_range(&self, seek: usize) -> usize {
-        // Use the `total_size` method to calculate the end index of the box
-        seek + self.total_size()
-    }
-
-    /// Calculates and returns the total size of the `ChunkOffsetBox`.
-    ///
-    /// The total size is the size of the header, entry count (4 bytes), and the size of the chunk offsets array.
-    /// The chunk offsets are variable-length, so we calculate their size based on the number of entries.
-    ///
-    /// # Returns
-    /// The total size of the `ChunkOffsetBox` in bytes.
-    fn total_size(&self) -> usize {
-        // Size of the header (BoxHeader)
-        let header_size = self.header.total_size();
-
-        // Size of the entry count (4 bytes)
-        let entry_count_size = SIZE_ENTRY_COUNT;
-
-        // Size of the chunk_offsets array (each chunk offset is 4 bytes)
-        let chunk_offsets_size = self.chunk_offsets.len() * SIZE_CHUNK_OFFSET_ENTRY;
-
-        // Total size is the sum of all these components
-        header_size + entry_count_size + chunk_offsets_size
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -136,38 +106,15 @@ mod tests {
     fn test_chunk_offset_box_total_size() {
         // Define a buffer similar to the one above
         let buffer: &[u8] = &[
-            0x00, 0x00, 0x00, 0x1C, // Size field
-            0x73, 0x74, 0x63, 0x6F, // Type "stco"
-            0x00, 0x00, 0x00, 0x02, // Entry count = 2
-            0x00, 0x00, 0x00, 0x10, // Chunk offset 1
-            0x00, 0x00, 0x00, 0x20, // Chunk offset 2
+            0x00, 0x00, 0x00, 0x1C, // Size field (28 bytes total: header + data)
+            0x73, 0x74, 0x63, 0x6F, // Type "stco" (4 bytes)
+            0x00, 0x00, 0x00, 0x02, // Entry count = 2 (4 bytes)
+            0x00, 0x00, 0x00, 0x10, // Chunk offset 1 = 16 (4 bytes)
+            0x00, 0x00, 0x00, 0x20, // Chunk offset 2 = 32 (4 bytes)
         ];
 
         let chunk_offset_box = ChunkOffsetBox::from_buffer(buffer);
 
-        // Calculate expected total size: header size (8) + entry count size (4) + 2 chunk offsets (8)
-        let expected_total_size = 8 + 4 + 2 * SIZE_CHUNK_OFFSET_ENTRY;
-        assert_eq!(chunk_offset_box.total_size(), expected_total_size);
-    }
-
-    #[test]
-    fn test_chunk_offset_box_get_end_range() {
-        let buffer: &[u8] = &[
-            0x00, 0x00, 0x00, 0x1C, // Size field
-            0x73, 0x74, 0x63, 0x6F, // Type "stco"
-            0x00, 0x00, 0x00, 0x02, // Entry count = 2
-            0x00, 0x00, 0x00, 0x10, // Chunk offset 1
-            0x00, 0x00, 0x00, 0x20, // Chunk offset 2
-        ];
-
-        let chunk_offset_box = ChunkOffsetBox::from_buffer(buffer);
-        let seek_position = 0;
-
-        // Expected end range: seek position + total size
-        let expected_end_range = seek_position + chunk_offset_box.total_size();
-        assert_eq!(
-            chunk_offset_box.get_end_range(seek_position),
-            expected_end_range
-        );
+        assert_eq!(chunk_offset_box.header().size(), 28);
     }
 }

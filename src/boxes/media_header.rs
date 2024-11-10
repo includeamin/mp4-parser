@@ -1,5 +1,3 @@
-use crate::utils::{get_range, ReadHelper};
-
 use super::header::BoxHeader;
 
 // Constants for MediaHeaderBox
@@ -9,14 +7,6 @@ const MEDIA_HEADER_BOX_CREATION_TIME: std::ops::Range<usize> = 12..16; // 4 byte
 const MEDIA_HEADER_BOX_MODIFICATION_TIME: std::ops::Range<usize> = 16..20; // 4 bytes
 const MEDIA_HEADER_BOX_TIMESCALE: std::ops::Range<usize> = 20..24; // 4 bytes
 const MEDIA_HEADER_BOX_DURATION: std::ops::Range<usize> = 24..28; // 4 bytes
-
-// Constants for field sizes
-const VERSION_SIZE: usize = 1; // 1 byte
-const FLAGS_SIZE: usize = 3; // 3 bytes
-const CREATION_TIME_SIZE: usize = 4; // 4 bytes
-const MODIFICATION_TIME_SIZE: usize = 4; // 4 bytes
-const TIMESCALE_SIZE: usize = 4; // 4 bytes
-const DURATION_SIZE: usize = 4; // 4 bytes
 
 #[derive(Debug, Clone)]
 pub struct MediaHeaderBox {
@@ -95,23 +85,44 @@ impl MediaHeaderBox {
     }
 }
 
-// Implementing ReadHelper trait for MediaHeaderBox
-impl ReadHelper for MediaHeaderBox {
-    /// Calculates the end range of the MediaHeaderBox, considering the header and data fields.
-    fn get_end_range(&self, seek: usize) -> usize {
-        seek + self.total_size()
-    }
+#[cfg(test)]
+mod tests {
+    use super::*;
 
-    /// Calculates the total size of the MediaHeaderBox in bytes, including the BoxHeader and MediaHeaderBox fields.
-    fn total_size(&self) -> usize {
-        let header_size = self.header.total_size(); // Size of the BoxHeader
-        let media_header_size = VERSION_SIZE
-            + FLAGS_SIZE
-            + CREATION_TIME_SIZE
-            + MODIFICATION_TIME_SIZE
-            + TIMESCALE_SIZE
-            + DURATION_SIZE; // Fixed size fields of MediaHeaderBox
+    #[test]
+    fn test_media_header_box_from_buffer() {
+        let buffer: &[u8] = &[
+            // Mock BoxHeader for MediaHeaderBox (8 bytes)
+            0x00, 0x00, 0x00, 0x20, // size = 32 bytes
+            b'm', b'd', b'h', b'd', // type = "mdhd"
+            // Version and flags
+            0x01, // version = 1
+            0x00, 0x00, 0x03, // flags = [0, 0, 3]
+            // Creation time
+            0x00, 0x00, 0x00, 0x10, // creation_time = 16
+            // Modification time
+            0x00, 0x00, 0x00, 0x20, // modification_time = 32
+            // Timescale
+            0x00, 0x00, 0x03, 0xE8, // timescale = 1000
+            // Duration
+            0x00, 0x00, 0x07, 0xD0, // duration = 2000
+        ];
 
-        header_size + media_header_size
+        let mdhd_box = MediaHeaderBox::from_buffer(buffer);
+
+        // Test BoxHeader
+        assert_eq!(mdhd_box.get_header().box_type(), "mdhd");
+        assert_eq!(mdhd_box.get_header().size(), 32);
+
+        // Test MediaHeaderBox fields
+        assert_eq!(mdhd_box.get_version(), 1);
+        assert_eq!(mdhd_box.get_flags(), [0, 0, 3]);
+        assert_eq!(mdhd_box.get_creation_time(), 16);
+        assert_eq!(mdhd_box.get_modification_time(), 32);
+        assert_eq!(mdhd_box.get_timescale(), 1000);
+        assert_eq!(mdhd_box.get_duration(), 2000);
+
+        // Test total size calculation
+        assert_eq!(mdhd_box.get_header().size(), 32);
     }
 }

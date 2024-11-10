@@ -1,5 +1,4 @@
 use super::header::BoxHeader;
-use crate::utils::{get_range, get_range_from, ReadHelper};
 
 // consts for HandlerBox
 const HANDLER_BOX_VERSION: std::ops::Range<usize> = 8..9;
@@ -7,11 +6,6 @@ const HANDLER_BOX_FLAGS: std::ops::Range<usize> = 9..12;
 const HANDLER_BOX_HANDLER_TYPE: std::ops::Range<usize> = 12..16;
 const HANDLER_BOX_RESERVED: std::ops::Range<usize> = 16..28;
 const HANDLER_BOX_NAME_START: std::ops::RangeFrom<usize> = 28..; // Null-terminated, variable length
-
-// const HANDLER_BOX_VERSION_SIZE: usize = 1; // 1 byte at offset 8
-// const HANDLER_BOX_FLAGS_SIZE: usize = 3; // 3 bytes at offset 9–11
-// const HANDLER_BOX_HANDLER_TYPE_SIZE: usize = 4; // 4 bytes at offset 12–15
-// const HANDLER_BOX_RESERVED_SIZE: usize = 12; // 12 bytes at offset 16–27
 
 /// Represents the `HandlerBox` in an MP4 container file.
 ///
@@ -114,51 +108,15 @@ impl HandlerBox {
     }
 }
 
-impl ReadHelper for HandlerBox {
-    /// Returns the end range (the index) of the `HandlerBox`, calculated based on the size of the box.
-    ///
-    /// # Arguments
-    /// * `seek` - The starting index in the buffer where the `HandlerBox` begins.
-    ///
-    /// # Returns
-    /// The end index in the buffer for the `HandlerBox`, calculated as the starting index plus the total size of the box.
-    fn get_end_range(&self, seek: usize) -> usize {
-        // The end range is simply the starting index plus the total size of the box.
-        seek + self.total_size()
-    }
-
-    /// Calculates and returns the total size of the `HandlerBox`.
-    ///
-    /// The total size is calculated as the sum of the header size, version size, flags size, handler type size,
-    /// reserved size, and the size of the name (which is variable-length).
-    ///
-    /// # Returns
-    /// The total size of the `HandlerBox` in bytes.
-    fn total_size(&self) -> usize {
-        // Size of the header (BoxHeader)
-        let header_size = self.header.total_size();
-
-        // Total size is the sum of all these components
-        header_size
-            + 1 // version
-            + 1 // null terminator
-            + self.flags.len()
-            + self.handler_type.len()
-            + self.reserved.len()
-            + self.name.len()
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    // Helper function to create a buffer for a HandlerBox with test data
     fn create_test_buffer() -> Vec<u8> {
         let mut buffer = vec![];
 
         // Mock BoxHeader (assuming 8 bytes total: size (4 bytes), type (4 bytes))
-        buffer.extend_from_slice(&[0, 0, 0, 44]); // size = 44 bytes
+        buffer.extend_from_slice(&[0, 0, 0, 41]); // size = 41 bytes (adjusted)
         buffer.extend_from_slice(b"hdlr"); // type = "hdlr"
 
         // Mock version and flags (4 bytes total)
@@ -185,7 +143,7 @@ mod tests {
 
         // Verify header
         assert_eq!(handler_box.header().box_type(), "hdlr");
-        assert_eq!(handler_box.header().size(), 44);
+        assert_eq!(handler_box.header().size(), 41);
 
         // Verify version and flags
         assert_eq!(handler_box.version(), 1);
@@ -208,19 +166,8 @@ mod tests {
 
         // Expected size = header (8) + version (1) + flags (3) + handler_type (4) + reserved (12) + name ("Test Handler" + null-terminator = 13)
         let expected_size = 8 + 1 + 3 + 4 + 12 + 13;
-        assert_eq!(handler_box.total_size(), expected_size);
-    }
-
-    #[test]
-    fn test_get_end_range() {
-        let buffer = create_test_buffer();
-        let handler_box = HandlerBox::from_buffer(&buffer);
-
-        // Start position in the buffer
-        let seek = 0;
-        // Expected end range
-        let expected_end_range = handler_box.total_size();
-        assert_eq!(handler_box.get_end_range(seek), expected_end_range);
+        assert_eq!(handler_box.header().size() as usize, expected_size);
+        assert_eq!(handler_box.header().size() as usize, expected_size);
     }
 
     #[test]

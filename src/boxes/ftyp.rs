@@ -1,16 +1,11 @@
 use super::header::BoxHeader;
-use crate::{shared_consts::CHUNK_SIZE, utils::ReadHelper};
+use crate::shared_consts::CHUNK_SIZE;
 
 pub const HEADER_FTYP: &str = "ftyp";
 
 const FTYP_MAJOR_BRAND: std::ops::Range<usize> = 8..12;
 const FTYP_MINOR_VERSION: std::ops::Range<usize> = 12..16;
 const FTYP_COMAPTIBLE_BRANDS: std::ops::RangeFrom<usize> = 16..;
-
-// Constants for sizes
-const SIZE_MAJOR_BRAND: usize = 4;
-const SIZE_MINOR_VERSION: usize = 4;
-const SIZE_COMPATIBLE_BRAND_ENTRY: usize = 4;
 
 #[derive(Debug)]
 pub struct Ftyp {
@@ -23,7 +18,7 @@ pub struct Ftyp {
 impl Ftyp {
     pub fn from_buffer(buffer: &[u8]) -> Self {
         let header = BoxHeader::from_buffer(buffer);
-        let compatible_version = buffer[FTYP_COMAPTIBLE_BRANDS.start..header.size() as usize]
+        let compatible_version = buffer[FTYP_COMAPTIBLE_BRANDS.start..header.size()]
             .chunks(CHUNK_SIZE)
             .filter_map(|chunk| {
                 if !chunk.is_empty() {
@@ -52,6 +47,10 @@ impl Ftyp {
         self.minor_version
     }
 
+    pub fn header(&self) -> &BoxHeader {
+        &self.header
+    }
+
     pub fn compatible_brands(&self) -> Vec<String> {
         let mut compatible_brands = Vec::new();
         for i in self.compatible_brands.clone() {
@@ -59,25 +58,6 @@ impl Ftyp {
         }
 
         compatible_brands
-    }
-}
-
-/// Implementation of `ReadHelper` trait for `Ftyp` to calculate the end index of the box and total size.
-impl ReadHelper for Ftyp {
-    fn get_end_range(&self, seek: usize) -> usize {
-        // Use the `total_size` method to calculate the end index of the box
-        seek + self.total_size()
-    }
-
-    fn total_size(&self) -> usize {
-        // Size of the header (BoxHeader)
-        let header_size = self.header.total_size();
-
-        // Size of compatible brands (each entry is 4 bytes)
-        let compatible_brands_size = self.compatible_brands.len() * SIZE_COMPATIBLE_BRAND_ENTRY;
-
-        // Total size is the sum of all these components
-        header_size + SIZE_MAJOR_BRAND + SIZE_MINOR_VERSION + compatible_brands_size
     }
 }
 
@@ -113,28 +93,11 @@ mod tests {
     }
 
     #[test]
-    fn test_ftyp_get_end_range() {
-        // Create an Ftyp instance from the buffer starting at seek position 4
-        let ftyp = Ftyp::from_buffer(BUFFER);
-
-        // Verify the total size of the ftyp box
-        let expected_end_range = 4 + ftyp.total_size();
-        assert_eq!(ftyp.get_end_range(4), expected_end_range);
-    }
-
-    #[test]
     fn test_ftyp_total_size() {
         // Create an Ftyp instance from the buffer starting at seek position 4
         let ftyp = Ftyp::from_buffer(BUFFER);
 
-        // The total size should be the sum of the header size, major brand size,
-        // minor version size, and compatible brands size.
-        let expected_total_size = ftyp.header.total_size()
-            + SIZE_MAJOR_BRAND
-            + SIZE_MINOR_VERSION
-            + (2 * SIZE_COMPATIBLE_BRAND_ENTRY); // Two compatible brands in the test buffer
-
         // Verify the total size
-        assert_eq!(ftyp.total_size(), expected_total_size);
+        assert_eq!(ftyp.header().size(), 24);
     }
 }

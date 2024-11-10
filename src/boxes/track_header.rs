@@ -1,5 +1,4 @@
 use super::header::BoxHeader;
-use crate::utils::{get_range, ReadHelper};
 
 // consts for TrackHeaderBox
 const TRACK_HEADER_BOX_VERSION: std::ops::Range<usize> = 8..9; // 1 byte
@@ -204,34 +203,5 @@ impl TrackHeaderBox {
     // Getter for `height`
     pub fn get_height(&self) -> f32 {
         self.height
-    }
-}
-
-impl ReadHelper for TrackHeaderBox {
-    fn get_end_range(&self, seek: usize) -> usize {
-        // Calculate the size of all fields, starting from `seek`.
-        seek + self.total_size()
-    }
-
-    fn total_size(&self) -> usize {
-        // Sum up all field sizes by taking the length of each range
-        let fields_size = TRACK_HEADER_BOX_VERSION.len()
-            + TRACK_HEADER_BOX_FLAGS.len()
-            + TRACK_HEADER_BOX_CREATION_TIME.len()
-            + TRACK_HEADER_BOX_MODIFICATION_TIME.len()
-            + TRACK_HEADER_BOX_TRACK_ID.len()
-            + TRACK_HEADER_BOX_RESERVED.len()
-            + TRACK_HEADER_BOX_DURATION.len()
-            + TRACK_HEADER_BOX_RESERVED2.len()
-            + TRACK_HEADER_BOX_LAYER.len()
-            + TRACK_HEADER_BOX_ALTERNATE_GROUP.len()
-            + TRACK_HEADER_BOX_VOLUME.len()
-            + TRACK_HEADER_BOX_RESERVED3.len()
-            + TRACK_HEADER_BOX_MATRIX.len()
-            + TRACK_HEADER_BOX_WIDTH.len()
-            + TRACK_HEADER_BOX_HEIGHT.len();
-
-        // Include the size of `BoxHeader` as well
-        self.header.total_size() + fields_size
     }
 }

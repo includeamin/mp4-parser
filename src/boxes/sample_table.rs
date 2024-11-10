@@ -1,5 +1,3 @@
-use crate::utils::ReadHelper;
-
 use super::header::BoxHeader;
 use super::{
     chunk_offset::ChunkOffsetBox, sample_description::SampleDescriptionBox,
@@ -98,25 +96,5 @@ impl SampleTableBox {
     /// A reference to the `ChunkOffsetBox`.
     pub fn get_chunk_offset(&self) -> &ChunkOffsetBox {
         &self.stco
-    }
-}
-
-// Implementing ReadHelper trait for SampleTableBox
-impl ReadHelper for SampleTableBox {
-    /// Calculates the end range of the SampleTableBox, considering all sub-boxes.
-    fn get_end_range(&self, seek: usize) -> usize {
-        seek + self.total_size() // Return the end position after considering total size
-    }
-
-    /// Calculates the total size of the SampleTableBox in bytes, including the BoxHeader and all sub-boxes.
-    fn total_size(&self) -> usize {
-        let header_size = self.header.total_size(); // Size of BoxHeader (fixed part)
-        let stsd_size = self.stsd.total_size(); // Size of SampleDescriptionBox
-        let stts_size = self.stts.total_size(); // Size of TimeToSampleBox
-        let stsc_size = self.stsc.total_size(); // Size of SampleToChunkBox
-        let stsz_size = self.stsz.total_size(); // Size of SampleSizeBox
-        let stco_size = self.stco.total_size(); // Size of ChunkOffsetBox
-
-        header_size + stsd_size + stts_size + stsc_size + stsz_size + stco_size // Total size
     }
 }

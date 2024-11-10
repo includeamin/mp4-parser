@@ -1,5 +1,3 @@
-use crate::utils::ReadHelper;
-
 use super::header::BoxHeader;
 use super::sample_table::SampleTableBox;
 
@@ -12,13 +10,13 @@ pub struct MediaInformationBox {
 impl MediaInformationBox {
     pub fn from_buffer(buffer: &[u8]) -> Self {
         let header = BoxHeader::from_buffer(buffer);
-        let stbl = SampleTableBox::from_buffer(buffer);
+        let stbl = SampleTableBox::from_buffer(&buffer[header.size()..]);
 
         MediaInformationBox { header, stbl }
     }
 
     // Getter for the header
-    pub fn get_header(&self) -> &BoxHeader {
+    pub fn header(&self) -> &BoxHeader {
         &self.header
     }
 
@@ -28,15 +26,84 @@ impl MediaInformationBox {
     }
 }
 
-// Implementing ReadHelper trait for MediaInformationBox
-impl ReadHelper for MediaInformationBox {
-    /// Calculates the end range of the MediaInformationBox, considering the header and stbl fields.
-    fn get_end_range(&self, seek: usize) -> usize {
-        seek + self.total_size() // Return the end position after considering total size
-    }
+#[cfg(test)]
+mod tests {
+    use super::*;
 
-    /// Calculates the total size of the MediaInformationBox in bytes, including the BoxHeader and SampleTableBox fields.
-    fn total_size(&self) -> usize {
-        self.header.total_size() + self.stbl.total_size() // Total size is the sum of both components
+    #[test]
+    fn test_media_information_box_from_buffer() {
+        let buffer: &[u8] = &[
+            // MediaInformationBox "minf"
+            0x00, 0x00, 0x00, 0x60, // size = 96 bytes (total for "minf" box)
+            b'm', b'i', b'n', b'f', // type = "minf"
+            // SampleTableBox "stbl"
+            0x00, 0x00, 0x00, 0x50, // size = 80 bytes (total for "stbl" box)
+            b's', b't', b'b', b'l', // type = "stbl"
+            // SampleDescriptionBox "stsd"
+            0x00, 0x00, 0x00, 0x20, // size = 32 bytes
+            b's', b't', b's', b'd', // type = "stsd"
+            0x00, 0x00, 0x00, 0x01, // entry count (1 entry)
+            0x00, 0x00, 0x00, 0x01, // sample description entry (mock data)
+            // TimeToSampleBox "stts"
+            0x00, 0x00, 0x00, 0x18, // size = 24 bytes
+            b's', b't', b't', b's', // type = "stts"
+            0x00, 0x00, 0x00, 0x01, // entry count (1 entry)
+            0x00, 0x00, 0x00, 0x01, // sample count = 1
+            0x00, 0x00, 0x00, 0x10, // duration = 16 (mock data)
+            // SampleToChunkBox "stsc"
+            0x00, 0x00, 0x00, 0x18, // size = 24 bytes
+            b's', b't', b's', b'c', // type = "stsc"
+            0x00, 0x00, 0x00, 0x01, // entry count (1 entry)
+            0x00, 0x00, 0x00, 0x01, // first chunk (mock data)
+            0x00, 0x00, 0x00, 0x01, // samples per chunk = 1 (mock data)
+            // SampleSizeBox "stsz"
+            0x00, 0x00, 0x00, 0x18, // size = 24 bytes
+            b's', b't', b's', b'z', // type = "stsz"
+            0x00, 0x00, 0x00, 0x01, // sample count = 1
+            0x00, 0x00, 0x00, 0x10, // sample size = 16 bytes (mock data)
+            // ChunkOffsetBox "stco"
+            0x00, 0x00, 0x00, 0x18, // size = 24 bytes
+            b's', b't', b'c', b'o', // type = "stco"
+            0x00, 0x00, 0x00, 0x01, // entry count (1 entry)
+            0x00, 0x00, 0x00, 0x20, // chunk offset = 32 (mock data)
+        ];
+
+        let minf_box = MediaInformationBox::from_buffer(buffer);
+
+        // Test BoxHeader
+        assert_eq!(minf_box.header().box_type(), "minf");
+        assert_eq!(minf_box.header().size(), 48);
+
+        // Test SampleTableBox (stbl)
+        let stbl = minf_box.get_stbl();
+        assert_eq!(stbl.get_header().box_type(), "stbl");
+        assert_eq!(stbl.get_header().size(), 32);
+
+        // Test SampleDescriptionBox (stsd)
+        assert_eq!(
+            stbl.get_sample_description().get_header().box_type(),
+            "stsd"
+        );
+        assert_eq!(stbl.get_sample_description().get_header().size(), 16);
+
+        // Test TimeToSampleBox (stts)
+        assert_eq!(stbl.get_time_to_sample().get_header().box_type(), "stts");
+        assert_eq!(stbl.get_time_to_sample().get_header().size(), 16);
+
+        // Test SampleToChunkBox (stsc)
+        assert_eq!(stbl.get_sample_to_chunk().get_header().box_type(), "stsc");
+        assert_eq!(stbl.get_sample_to_chunk().get_header().size(), 16);
+
+        // Test SampleSizeBox (stsz)
+        assert_eq!(stbl.get_sample_size().get_header().box_type(), "stsz");
+        assert_eq!(stbl.get_sample_size().get_header().size(), 16);
+
+        // Test ChunkOffsetBox (stco)
+        assert_eq!(stbl.get_chunk_offset().header().box_type(), "stco");
+        assert_eq!(stbl.get_chunk_offset().header().size(), 16);
+
+        // Test total size calculation
+        let expected_total_size = minf_box.header().size() + stbl.get_header().size();
+        assert_eq!(minf_box.header().size(), expected_total_size);
     }
 }
