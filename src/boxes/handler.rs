@@ -87,8 +87,8 @@ impl HandlerBox {
     ///
     /// # Returns
     /// A 4-byte array representing the handler type at offset 12–15.
-    pub fn handler_type(&self) -> &[u8; 4] {
-        &self.handler_type
+    pub fn handler_type(&self) -> String {
+        String::from_utf8(self.handler_type.to_vec()).unwrap()
     }
 
     /// Returns the reserved bytes in the `HandlerBox`.
@@ -150,7 +150,7 @@ mod tests {
         assert_eq!(handler_box.flags(), &[0, 0, 1]);
 
         // Verify handler type
-        assert_eq!(handler_box.handler_type(), b"vide");
+        assert_eq!(handler_box.handler_type(), "vide");
 
         // Verify reserved
         assert_eq!(handler_box.reserved(), &[0; 12]);

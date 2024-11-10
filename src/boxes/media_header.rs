@@ -1,4 +1,5 @@
 use super::header::BoxHeader;
+use std::convert::TryInto;
 
 // Constants for MediaHeaderBox
 const MEDIA_HEADER_BOX_VERSION: std::ops::Range<usize> = 8..9; // 1 byte
@@ -7,6 +8,7 @@ const MEDIA_HEADER_BOX_CREATION_TIME: std::ops::Range<usize> = 12..16; // 4 byte
 const MEDIA_HEADER_BOX_MODIFICATION_TIME: std::ops::Range<usize> = 16..20; // 4 bytes
 const MEDIA_HEADER_BOX_TIMESCALE: std::ops::Range<usize> = 20..24; // 4 bytes
 const MEDIA_HEADER_BOX_DURATION: std::ops::Range<usize> = 24..28; // 4 bytes
+const MEDIA_HEADER_BOX_LANGUAGE: std::ops::Range<usize> = 28..30; // 2 bytes (ISO-639-2 Language)
 
 #[derive(Debug, Clone)]
 pub struct MediaHeaderBox {
@@ -17,6 +19,7 @@ pub struct MediaHeaderBox {
     modification_time: u32, // 4 bytes at offset 16–19
     timescale: u32,         // 4 bytes at offset 20–23
     duration: u32,          // 4 bytes at offset 24–27
+    language: [u8; 2],      // 2 bytes at offset 28–29 (ISO-639-2 Language code)
 }
 
 impl MediaHeaderBox {
@@ -37,6 +40,10 @@ impl MediaHeaderBox {
         );
         let timescale = u32::from_be_bytes(buffer[MEDIA_HEADER_BOX_TIMESCALE].try_into().unwrap());
         let duration = u32::from_be_bytes(buffer[MEDIA_HEADER_BOX_DURATION].try_into().unwrap());
+        let language = [
+            buffer[MEDIA_HEADER_BOX_LANGUAGE][0],
+            buffer[MEDIA_HEADER_BOX_LANGUAGE][1],
+        ];
 
         MediaHeaderBox {
             header,
@@ -46,6 +53,7 @@ impl MediaHeaderBox {
             modification_time,
             timescale,
             duration,
+            language,
         }
     }
 
@@ -79,8 +87,20 @@ impl MediaHeaderBox {
         self.duration
     }
 
+    // Getter for `language`
+    pub fn get_language(&self) -> &str {
+        // Convert language code to a string (ISO-639-2 format)
+        match self.language {
+            [0x55, 0xC4] => "und", // undetermined
+            [0x6E, 0x61] => "eng", // English
+            [0x66, 0x72] => "fra", // French
+            [0x6A, 0x70] => "jpn", // Japanese
+            _ => "unknown",        // Unknown language
+        }
+    }
+
     // Getter for `header`
-    pub fn get_header(&self) -> &BoxHeader {
+    pub fn header(&self) -> &BoxHeader {
         &self.header
     }
 }
@@ -111,8 +131,8 @@ mod tests {
         let mdhd_box = MediaHeaderBox::from_buffer(buffer);
 
         // Test BoxHeader
-        assert_eq!(mdhd_box.get_header().box_type(), "mdhd");
-        assert_eq!(mdhd_box.get_header().size(), 32);
+        assert_eq!(mdhd_box.header().box_type(), "mdhd");
+        assert_eq!(mdhd_box.header().size(), 32);
 
         // Test MediaHeaderBox fields
         assert_eq!(mdhd_box.get_version(), 1);
@@ -123,6 +143,6 @@ mod tests {
         assert_eq!(mdhd_box.get_duration(), 2000);
 
         // Test total size calculation
-        assert_eq!(mdhd_box.get_header().size(), 32);
+        assert_eq!(mdhd_box.header().size(), 32);
     }
 }

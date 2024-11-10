@@ -10,7 +10,7 @@ pub struct MediaInformationBox {
 impl MediaInformationBox {
     pub fn from_buffer(buffer: &[u8]) -> Self {
         let header = BoxHeader::from_buffer(buffer);
-        let stbl = SampleTableBox::from_buffer(&buffer[header.size()..]);
+        let stbl = SampleTableBox::from_buffer(&buffer[8..]);
 
         MediaInformationBox { header, stbl }
     }
