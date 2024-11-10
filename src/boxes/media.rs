@@ -14,11 +14,11 @@ pub struct MediaBox {
 }
 
 impl MediaBox {
-    pub fn from_buffer(seek: usize, buffer: &[u8]) -> Self {
-        let header = BoxHeader::from_buffer(seek, buffer);
-        let mdhd = MediaHeaderBox::from_buffer(seek, buffer);
-        let hdlr = HandlerBox::from_buffer(seek, buffer);
-        let minf = MediaInformationBox::from_buffer(seek, buffer);
+    pub fn from_buffer(buffer: &[u8]) -> Self {
+        let header = BoxHeader::from_buffer(buffer);
+        let mdhd = MediaHeaderBox::from_buffer(buffer);
+        let hdlr = HandlerBox::from_buffer(buffer);
+        let minf = MediaInformationBox::from_buffer(buffer);
 
         MediaBox {
             header,
@@ -58,11 +58,9 @@ impl ReadHelper for MediaBox {
 
     /// Calculates the total size of the MediaBox in bytes, including the BoxHeader and all sub-boxes.
     fn total_size(&self) -> usize {
-        let header_size = self.header.total_size(); // Size of BoxHeader (fixed part)
-        let mdhd_size = self.mdhd.total_size(); // Size of MediaHeaderBox
-        let hdlr_size = self.hdlr.total_size(); // Size of HandlerBox
-        let minf_size = self.minf.total_size(); // Size of MediaInformationBox
-
-        header_size + mdhd_size + hdlr_size + minf_size // Total size
+        self.header.total_size()
+            + self.mdhd.total_size()
+            + self.hdlr.total_size()
+            + self.minf.total_size() // Total size
     }
 }

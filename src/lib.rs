@@ -15,22 +15,24 @@ impl MP4Parser {
         let mut mp4 = mp4::MP4::default();
         loop {
             println!("---- seek at {} -----", seek);
-            let header = BoxHeader::from_buffer(seek, buffer);
+            let header = BoxHeader::from_buffer(buffer);
             println!("detected header: {}", header.get_box_type());
             match header.get_box_type().as_str() {
                 boxes::ftyp::HEADER_FTYP => {
-                    let ftyp = boxes::ftyp::Ftyp::from_buffer(seek, buffer);
+                    let ftyp = boxes::ftyp::Ftyp::from_buffer(buffer);
                     seek = seek + ftyp.get_end_range(seek);
                     mp4.ftyp = Some(ftyp)
                 }
                 boxes::moov::HEADER_MOOV => {
-                    let movie = boxes::moov::MovieBox::from_buffer(seek, buffer);
+                    let movie = boxes::moov::MovieBox::from_buffer(buffer);
+                    println!("{:?}", movie);
                     seek = seek + movie.get_end_range(seek);
                     println!("{}", seek);
                     mp4.moov = Some(movie);
+                }
+                _ => {
                     break;
                 }
-                _ => {}
             }
         }
 

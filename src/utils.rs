@@ -9,6 +9,14 @@ pub fn get_range_from(
     seek + range.start..
 }
 
+pub fn get_start_seek(seek: usize) -> usize {
+    if seek > 0 {
+        return seek - 1;
+    }
+
+    0
+}
+
 pub trait ReadHelper {
     fn get_end_range(&self, seek: usize) -> usize;
     fn total_size(&self) -> usize;

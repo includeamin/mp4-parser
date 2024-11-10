@@ -31,70 +31,51 @@ pub struct MovieHeaderBox {
 }
 
 impl MovieHeaderBox {
-    pub fn from_buffer(seek: usize, buffer: &[u8]) -> Self {
-        let header = BoxHeader::from_buffer(seek, buffer);
-        let version = buffer[get_range(seek, MOVIE_HEADER_BOX_VERSION)][0];
+    pub fn from_buffer(buffer: &[u8]) -> Self {
+        let header = BoxHeader::from_buffer(buffer);
+        let version = buffer[MOVIE_HEADER_BOX_VERSION][0];
 
         let flags = [
-            buffer[get_range(seek, MOVIE_HEADER_BOX_FLAGS)][0],
-            buffer[get_range(seek, MOVIE_HEADER_BOX_FLAGS)][1],
-            buffer[get_range(seek, MOVIE_HEADER_BOX_FLAGS)][2],
+            buffer[MOVIE_HEADER_BOX_FLAGS][0],
+            buffer[MOVIE_HEADER_BOX_FLAGS][1],
+            buffer[MOVIE_HEADER_BOX_FLAGS][2],
         ];
 
-        let creation_time = u32::from_be_bytes(
-            buffer[get_range(seek, MOVIE_HEADER_BOX_CREATION_TIME)]
-                .try_into()
-                .unwrap(),
-        );
+        let creation_time =
+            u32::from_be_bytes(buffer[MOVIE_HEADER_BOX_CREATION_TIME].try_into().unwrap());
 
         let modification_time = u32::from_be_bytes(
-            buffer[get_range(seek, MOVIE_HEADER_BOX_MODIFICATION_TIME)]
+            buffer[MOVIE_HEADER_BOX_MODIFICATION_TIME]
                 .try_into()
                 .unwrap(),
         );
 
-        let timescale = u32::from_be_bytes(
-            buffer[get_range(seek, MOVIE_HEADER_BOX_TIMESCALE)]
-                .try_into()
-                .unwrap(),
-        );
+        let timescale = u32::from_be_bytes(buffer[MOVIE_HEADER_BOX_TIMESCALE].try_into().unwrap());
 
-        let duration = u32::from_be_bytes(
-            buffer[get_range(seek, MOVIE_HEADER_BOX_DURATION)]
-                .try_into()
-                .unwrap(),
-        );
+        let duration = u32::from_be_bytes(buffer[MOVIE_HEADER_BOX_DURATION].try_into().unwrap());
 
         let rate = f32::from_bits(u32::from_be_bytes(
-            buffer[get_range(seek, MOVIE_HEADER_BOX_RATE)]
-                .try_into()
-                .unwrap(),
+            buffer[MOVIE_HEADER_BOX_RATE].try_into().unwrap(),
         ));
 
-        let volume = buffer[get_range(seek, MOVIE_HEADER_BOX_VOLUME)][0] as f32
-            + (buffer[get_range(seek, MOVIE_HEADER_BOX_VOLUME)][1] as f32 / 256.0);
+        let volume = buffer[MOVIE_HEADER_BOX_VOLUME][0] as f32
+            + (buffer[MOVIE_HEADER_BOX_VOLUME][1] as f32 / 256.0);
 
         let mut reserved = [0u8; 10];
-        reserved.copy_from_slice(&buffer[get_range(seek, MOVIE_HEADER_BOX_RESERVED)]);
+        reserved.copy_from_slice(&buffer[MOVIE_HEADER_BOX_RESERVED]);
 
         let mut matrix = [0u32; 9];
         for (i, chunk) in matrix.iter_mut().enumerate() {
             *chunk = u32::from_be_bytes(
-                buffer[get_range(
-                    seek,
-                    MOVIE_HEADER_BOX_MATRIX.start + i * 4
-                        ..MOVIE_HEADER_BOX_MATRIX.start + i * 4 + 4,
-                )]
-                .try_into()
-                .unwrap(),
+                buffer[MOVIE_HEADER_BOX_MATRIX.start + i * 4
+                    ..MOVIE_HEADER_BOX_MATRIX.start + i * 4 + 4]
+                    .try_into()
+                    .unwrap(),
             );
         }
 
-        let next_track_id = u32::from_be_bytes(
-            buffer[get_range(seek, MOVIE_HEADER_BOX_NEXT_TRACK_ID)]
-                .try_into()
-                .unwrap(),
-        );
+        let next_track_id =
+            u32::from_be_bytes(buffer[MOVIE_HEADER_BOX_NEXT_TRACK_ID].try_into().unwrap());
 
         MovieHeaderBox {
             header,
@@ -182,7 +163,8 @@ impl ReadHelper for MovieHeaderBox {
     /// # Returns
     /// The end byte position (inclusive) of the `MovieHeaderBox`.
     fn get_end_range(&self, seek: usize) -> usize {
-        seek + self.total_size() - 1 // inclusive last byte
+        // seek + self.total_size() - 1 // inclusive last byte
+        seek + self.total_size()
     }
 
     /// Returns the total size of this `MovieHeaderBox` in bytes, including the `BoxHeader` and all fields.

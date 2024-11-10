@@ -3,7 +3,6 @@ use crate::utils::ReadHelper;
 use super::header::BoxHeader;
 use super::sample_table::SampleTableBox;
 
-
 #[derive(Debug, Clone)]
 pub struct MediaInformationBox {
     header: BoxHeader, // Size and type at offset 0–7
@@ -11,9 +10,9 @@ pub struct MediaInformationBox {
 }
 
 impl MediaInformationBox {
-    pub fn from_buffer(seek: usize, buffer: &[u8]) -> Self {
-        let header = BoxHeader::from_buffer(seek, buffer);
-        let stbl = SampleTableBox::from_buffer(seek, buffer);
+    pub fn from_buffer(buffer: &[u8]) -> Self {
+        let header = BoxHeader::from_buffer(buffer);
+        let stbl = SampleTableBox::from_buffer(buffer);
 
         MediaInformationBox { header, stbl }
     }
@@ -38,9 +37,6 @@ impl ReadHelper for MediaInformationBox {
 
     /// Calculates the total size of the MediaInformationBox in bytes, including the BoxHeader and SampleTableBox fields.
     fn total_size(&self) -> usize {
-        let header_size = self.header.total_size();
-        let stbl_size = self.stbl.total_size(); // Size of SampleTableBox
-
-        header_size + stbl_size // Total size is the sum of both components
+        self.header.total_size() + self.stbl.total_size() // Total size is the sum of both components
     }
 }

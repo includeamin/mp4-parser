@@ -16,19 +16,19 @@ pub struct SampleSizeBox {
 }
 
 impl SampleSizeBox {
-    pub fn from_buffer(seek: usize, buffer: &[u8]) -> Self {
+    pub fn from_buffer(buffer: &[u8]) -> Self {
         // Parse the header at the beginning of the box
-        let header = BoxHeader::from_buffer(seek, buffer);
+        let header = BoxHeader::from_buffer(buffer);
 
         // Parse the sample_count field (4 bytes)
         let sample_count = u32::from_be_bytes(
-            buffer[get_range(seek, SAMPLE_SIZE_BOX_SAMPLE_COUNT)]
+            buffer[SAMPLE_SIZE_BOX_SAMPLE_COUNT]
                 .try_into()
                 .expect("Failed to read sample_count"),
         );
 
         // Parse the sample_sizes field (variable-length field, each sample size is 4 bytes)
-        let sample_sizes = buffer[get_range_from(seek, SAMPLE_SIZE_BOX_SAMPLE_SIZES)]
+        let sample_sizes = buffer[SAMPLE_SIZE_BOX_SAMPLE_SIZES]
             .chunks(4)
             .map(|chunk| u32::from_be_bytes(chunk.try_into().expect("Failed to read sample size")))
             .collect::<Vec<_>>();

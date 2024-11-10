@@ -26,10 +26,10 @@ impl TrackBox {
     ///
     /// # Returns:
     /// A `TrackBox` instance with the parsed data.
-    pub fn from_buffer(seek: usize, buffer: &[u8]) -> Self {
-        let header = BoxHeader::from_buffer(seek, buffer);
-        let tkhd = TrackHeaderBox::from_buffer(seek, buffer);
-        let mdia = MediaBox::from_buffer(seek, buffer);
+    pub fn from_buffer(buffer: &[u8]) -> Self {
+        let header = BoxHeader::from_buffer(buffer);
+        let tkhd = TrackHeaderBox::from_buffer(buffer);
+        let mdia = MediaBox::from_buffer(buffer);
 
         TrackBox { header, tkhd, mdia }
     }

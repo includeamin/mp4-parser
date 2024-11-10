@@ -26,18 +26,14 @@ impl TimeToSampleBox {
     /// # Returns
     ///
     /// A `TimeToSampleBox` constructed from the given buffer.
-    pub fn from_buffer(seek: usize, buffer: &[u8]) -> Self {
-        let header = BoxHeader::from_buffer(seek, buffer);
-        let entry_count = u32::from_be_bytes(
-            buffer[get_range(seek, TIME_TO_SAMPLE_BOX_ENTRY_COUNT)]
-                .try_into()
-                .unwrap(),
-        );
+    pub fn from_buffer(buffer: &[u8]) -> Self {
+        let header = BoxHeader::from_buffer(buffer);
+        let entry_count =
+            u32::from_be_bytes(buffer[TIME_TO_SAMPLE_BOX_ENTRY_COUNT].try_into().unwrap());
 
         // For entries, it's variable-length, so we parse them.
         let mut entries = Vec::new();
-        let entries_range = get_range_from(seek, TIME_TO_SAMPLE_BOX_ENTRIES);
-        for chunk in buffer[entries_range].chunks(8) {
+        for chunk in buffer[TIME_TO_SAMPLE_BOX_ENTRIES].chunks(8) {
             let sample_count = u32::from_be_bytes(chunk[0..4].try_into().unwrap());
             let duration = u32::from_be_bytes(chunk[4..8].try_into().unwrap());
             entries.push((sample_count, duration));

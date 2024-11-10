@@ -17,20 +17,19 @@ pub struct SampleDescriptionBox {
 
 impl SampleDescriptionBox {
     // `from_buffer` takes a seek position and buffer and returns a fully constructed SampleDescriptionBox
-    pub fn from_buffer(seek: usize, buffer: &[u8]) -> Self {
+    pub fn from_buffer(buffer: &[u8]) -> Self {
         // Read the header at the beginning
-        let header = BoxHeader::from_buffer(seek, buffer);
+        let header = BoxHeader::from_buffer(buffer);
 
         // Read the sample_count field (4 bytes)
         let sample_count = u32::from_be_bytes(
-            buffer[get_range(seek, SAMPLE_DESCRIPTION_BOX_SAMPLE_COUNT)]
+            buffer[SAMPLE_DESCRIPTION_BOX_SAMPLE_COUNT]
                 .try_into()
                 .expect("Failed to read sample_count"),
         );
 
         // Read the sample_description field (variable-length)
-        let sample_description =
-            buffer[get_range_from(seek, SAMPLE_DESCRIPTION_BOX_SAMPLE_DESCRIPTION)].to_vec();
+        let sample_description = buffer[SAMPLE_DESCRIPTION_BOX_SAMPLE_DESCRIPTION].to_vec();
 
         SampleDescriptionBox {
             header,

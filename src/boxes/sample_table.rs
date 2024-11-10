@@ -28,13 +28,13 @@ impl SampleTableBox {
     /// # Returns
     ///
     /// A `SampleTableBox` constructed from the given buffer.
-    pub fn from_buffer(seek: usize, buffer: &[u8]) -> Self {
-        let header = BoxHeader::from_buffer(seek, buffer);
-        let stsd = SampleDescriptionBox::from_buffer(seek, buffer);
-        let stts = TimeToSampleBox::from_buffer(seek, buffer);
-        let stsc = SampleToChunkBox::from_buffer(seek, buffer);
-        let stsz = SampleSizeBox::from_buffer(seek, buffer);
-        let stco = ChunkOffsetBox::from_buffer(seek, buffer);
+    pub fn from_buffer(buffer: &[u8]) -> Self {
+        let header = BoxHeader::from_buffer(buffer);
+        let stsd = SampleDescriptionBox::from_buffer(buffer);
+        let stts = TimeToSampleBox::from_buffer(buffer);
+        let stsc = SampleToChunkBox::from_buffer(buffer);
+        let stsz = SampleSizeBox::from_buffer(buffer);
+        let stco = ChunkOffsetBox::from_buffer(buffer);
 
         SampleTableBox {
             header,

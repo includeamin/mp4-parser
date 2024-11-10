@@ -49,94 +49,61 @@ impl TrackHeaderBox {
     /// # Returns
     ///
     /// A `TrackHeaderBox` constructed from the given buffer.
-    pub fn from_buffer(seek: usize, buffer: &[u8]) -> Self {
-        let header = BoxHeader::from_buffer(seek, buffer);
+    pub fn from_buffer(buffer: &[u8]) -> Self {
+        let header = BoxHeader::from_buffer(buffer);
 
-        let version = buffer[get_range(seek, TRACK_HEADER_BOX_VERSION)][0];
+        let version = buffer[TRACK_HEADER_BOX_VERSION][0];
 
         let flags = [
-            buffer[get_range(seek, TRACK_HEADER_BOX_FLAGS)][0],
-            buffer[get_range(seek, TRACK_HEADER_BOX_FLAGS)][1],
-            buffer[get_range(seek, TRACK_HEADER_BOX_FLAGS)][2],
+            buffer[TRACK_HEADER_BOX_FLAGS][0],
+            buffer[TRACK_HEADER_BOX_FLAGS][1],
+            buffer[TRACK_HEADER_BOX_FLAGS][2],
         ];
 
-        let creation_time = u32::from_be_bytes(
-            buffer[get_range(seek, TRACK_HEADER_BOX_CREATION_TIME)]
-                .try_into()
-                .unwrap(),
-        );
+        let creation_time =
+            u32::from_be_bytes(buffer[TRACK_HEADER_BOX_CREATION_TIME].try_into().unwrap());
 
         let modification_time = u32::from_be_bytes(
-            buffer[get_range(seek, TRACK_HEADER_BOX_MODIFICATION_TIME)]
+            buffer[TRACK_HEADER_BOX_MODIFICATION_TIME]
                 .try_into()
                 .unwrap(),
         );
 
-        let track_id = u32::from_be_bytes(
-            buffer[get_range(seek, TRACK_HEADER_BOX_TRACK_ID)]
-                .try_into()
-                .unwrap(),
-        );
+        let track_id = u32::from_be_bytes(buffer[TRACK_HEADER_BOX_TRACK_ID].try_into().unwrap());
 
-        let reserved = u32::from_be_bytes(
-            buffer[get_range(seek, TRACK_HEADER_BOX_RESERVED)]
-                .try_into()
-                .unwrap(),
-        );
+        let reserved = u32::from_be_bytes(buffer[TRACK_HEADER_BOX_RESERVED].try_into().unwrap());
 
-        let duration = u32::from_be_bytes(
-            buffer[get_range(seek, TRACK_HEADER_BOX_DURATION)]
-                .try_into()
-                .unwrap(),
-        );
+        let duration = u32::from_be_bytes(buffer[TRACK_HEADER_BOX_DURATION].try_into().unwrap());
 
         let mut reserved2 = [0u8; 8];
-        reserved2.copy_from_slice(&buffer[get_range(seek, TRACK_HEADER_BOX_RESERVED2)]);
+        reserved2.copy_from_slice(&buffer[TRACK_HEADER_BOX_RESERVED2]);
 
-        let layer = u16::from_be_bytes(
-            buffer[get_range(seek, TRACK_HEADER_BOX_LAYER)]
-                .try_into()
-                .unwrap(),
-        );
+        let layer = u16::from_be_bytes(buffer[TRACK_HEADER_BOX_LAYER].try_into().unwrap());
 
-        let alternate_group = u16::from_be_bytes(
-            buffer[get_range(seek, TRACK_HEADER_BOX_ALTERNATE_GROUP)]
-                .try_into()
-                .unwrap(),
-        );
+        let alternate_group =
+            u16::from_be_bytes(buffer[TRACK_HEADER_BOX_ALTERNATE_GROUP].try_into().unwrap());
 
-        let volume = buffer[get_range(seek, TRACK_HEADER_BOX_VOLUME)][0] as f32
-            + (buffer[get_range(seek, TRACK_HEADER_BOX_VOLUME)][1] as f32 / 256.0);
+        let volume = buffer[TRACK_HEADER_BOX_VOLUME][0] as f32
+            + (buffer[TRACK_HEADER_BOX_VOLUME][1] as f32 / 256.0);
 
-        let reserved3 = u16::from_be_bytes(
-            buffer[get_range(seek, TRACK_HEADER_BOX_RESERVED3)]
-                .try_into()
-                .unwrap(),
-        );
+        let reserved3 = u16::from_be_bytes(buffer[TRACK_HEADER_BOX_RESERVED3].try_into().unwrap());
 
         let mut matrix = [0u32; 9];
         for (i, chunk) in matrix.iter_mut().enumerate() {
             *chunk = u32::from_be_bytes(
-                buffer[get_range(
-                    seek,
-                    TRACK_HEADER_BOX_MATRIX.start + i * 4
-                        ..TRACK_HEADER_BOX_MATRIX.start + i * 4 + 4,
-                )]
-                .try_into()
-                .unwrap(),
+                buffer[TRACK_HEADER_BOX_MATRIX.start + i * 4
+                    ..TRACK_HEADER_BOX_MATRIX.start + i * 4 + 4]
+                    .try_into()
+                    .unwrap(),
             );
         }
 
         let width = f32::from_bits(u32::from_be_bytes(
-            buffer[get_range(seek, TRACK_HEADER_BOX_WIDTH)]
-                .try_into()
-                .unwrap(),
+            buffer[TRACK_HEADER_BOX_WIDTH].try_into().unwrap(),
         ));
 
         let height = f32::from_bits(u32::from_be_bytes(
-            buffer[get_range(seek, TRACK_HEADER_BOX_HEIGHT)]
-                .try_into()
-                .unwrap(),
+            buffer[TRACK_HEADER_BOX_HEIGHT].try_into().unwrap(),
         ));
 
         TrackHeaderBox {

@@ -28,24 +28,21 @@ impl MovieBox {
     ///
     /// # Returns:
     /// A `MovieBox` instance with the parsed data.
-    pub fn from_buffer(seek: usize, buffer: &[u8]) -> Self {
+    pub fn from_buffer(buffer: &[u8]) -> Self {
         // Parse the BoxHeader from the buffer
-        let header = BoxHeader::from_buffer(seek, buffer);
+        let header = BoxHeader::from_buffer(buffer);
 
         // Parse the MovieHeaderBox from the buffer
-        let mvhd = MovieHeaderBox::from_buffer(seek + header.total_size(), buffer);
-
-        // Calculate the range where the TrackBoxes begin
-        let traks_range = get_range_from(seek + header.total_size(), MOVIE_BOX_TRAKS);
+        let mvhd = MovieHeaderBox::from_buffer(buffer);
 
         // Parse the TrackBoxes from the buffer
         let mut traks = Vec::new();
-        let mut trak_offset = traks_range.start;
-        let end_of_movie_header = seek + header.total_size() + mvhd.total_size();
+        let mut trak_offset = MOVIE_BOX_TRAKS.start;
+        let end_of_movie_header = header.total_size() + mvhd.total_size(); // TODO: fix me
 
         // Iterate and parse TrackBoxes until we reach the end of the movie box
         while trak_offset < end_of_movie_header {
-            let trak = TrackBox::from_buffer(trak_offset, buffer);
+            let trak = TrackBox::from_buffer(&buffer[trak_offset..]);
             traks.push(trak);
 
             // Move the offset forward by the size of the last parsed TrackBox
@@ -102,17 +99,17 @@ impl ReadHelper for MovieBox {
     /// # Returns:
     /// The end byte position (inclusive).
     fn get_end_range(&self, seek: usize) -> usize {
-        // Calculate the end position by summing the sizes of header, mvhd, and each TrackBox
-        let end_of_header = seek + self.header.total_size();
-        let end_of_mvhd = end_of_header + self.mvhd.total_size();
+        // // Calculate the end position by summing the sizes of header, mvhd, and each TrackBox
+        // let end_of_header = seek + self.header.get_end_range(seek);
+        // let end_of_mvhd = end_of_header + self.mvhd.get_end_range(seek);
 
-        // Sum the sizes of all the TrackBoxes
-        let end_of_traks = self
-            .traks
-            .iter()
-            .fold(end_of_mvhd, |offset, track| offset + track.total_size());
+        // // Sum the sizes of all the TrackBoxes
+        // let end_of_traks = self.traks.iter().fold(end_of_mvhd, |offset, track| {
+        //     offset + track.get_end_range(seek)
+        // });
 
-        end_of_traks - 1 // Return the last byte position, inclusive
+        // end_of_traks - 1 // Return the last byte position, inclusive
+        seek + self.total_size()
     }
 
     /// Returns the total size of the `MovieBox` in bytes.

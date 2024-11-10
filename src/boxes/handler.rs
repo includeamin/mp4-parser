@@ -35,23 +35,23 @@ impl HandlerBox {
     ///
     /// # Returns
     /// A `HandlerBox` instance populated with data extracted from the buffer.
-    pub fn from_buffer(seek: usize, buffer: &[u8]) -> Self {
-        let header = BoxHeader::from_buffer(seek, buffer);
-        let version = buffer[get_range(seek, HANDLER_BOX_VERSION)][0];
+    pub fn from_buffer(buffer: &[u8]) -> Self {
+        let header = BoxHeader::from_buffer(buffer);
+        let version = buffer[HANDLER_BOX_VERSION][0];
         let flags = [
-            buffer[get_range(seek, HANDLER_BOX_FLAGS)][0],
-            buffer[get_range(seek, HANDLER_BOX_FLAGS)][1],
-            buffer[get_range(seek, HANDLER_BOX_FLAGS)][2],
+            buffer[HANDLER_BOX_FLAGS][0],
+            buffer[HANDLER_BOX_FLAGS][1],
+            buffer[HANDLER_BOX_FLAGS][2],
         ];
-        let handler_type = buffer[get_range(seek, HANDLER_BOX_HANDLER_TYPE)]
+        let handler_type = buffer[HANDLER_BOX_HANDLER_TYPE]
             .try_into()
             .unwrap();
-        let reserved = buffer[get_range(seek, HANDLER_BOX_RESERVED)]
+        let reserved = buffer[HANDLER_BOX_RESERVED]
             .try_into()
             .unwrap();
 
         // For `name`, find the null-terminated string starting from `HANDLER_BOX_NAME_START`
-        let name_start = get_range_from(seek, HANDLER_BOX_NAME_START).start;
+        let name_start = HANDLER_BOX_NAME_START.start;
         let name_end = buffer[name_start..]
             .iter()
             .position(|&b| b == 0)
@@ -142,22 +142,15 @@ impl ReadHelper for HandlerBox {
         // Size of the header (BoxHeader)
         let header_size = self.header.total_size();
 
-        // Size of the version (1 byte)
-        let version_size = HANDLER_BOX_VERSION_SIZE;
-
-        // Size of the flags (3 bytes)
-        let flags_size = HANDLER_BOX_FLAGS_SIZE;
-
-        // Size of the handler type (4 bytes)
-        let handler_type_size = HANDLER_BOX_HANDLER_TYPE_SIZE;
-
-        // Size of the reserved (12 bytes)
-        let reserved_size = HANDLER_BOX_RESERVED_SIZE;
-
         // Size of the name (variable length, calculated from the null-terminated string length)
         let name_size = self.name.len();
 
         // Total size is the sum of all these components
-        header_size + version_size + flags_size + handler_type_size + reserved_size + name_size
+        header_size
+            + HANDLER_BOX_VERSION_SIZE
+            + HANDLER_BOX_FLAGS_SIZE
+            + HANDLER_BOX_HANDLER_TYPE_SIZE
+            + HANDLER_BOX_RESERVED_SIZE
+            + name_size
     }
 }

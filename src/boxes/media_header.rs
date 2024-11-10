@@ -30,34 +30,23 @@ pub struct MediaHeaderBox {
 }
 
 impl MediaHeaderBox {
-    pub fn from_buffer(seek: usize, buffer: &[u8]) -> Self {
-        let header = BoxHeader::from_buffer(seek, buffer);
-        let version = buffer[get_range(seek, MEDIA_HEADER_BOX_VERSION)][0];
+    pub fn from_buffer(buffer: &[u8]) -> Self {
+        let header = BoxHeader::from_buffer(buffer);
+        let version = buffer[MEDIA_HEADER_BOX_VERSION][0];
         let flags = [
-            buffer[get_range(seek, MEDIA_HEADER_BOX_FLAGS)][0],
-            buffer[get_range(seek, MEDIA_HEADER_BOX_FLAGS)][1],
-            buffer[get_range(seek, MEDIA_HEADER_BOX_FLAGS)][2],
+            buffer[MEDIA_HEADER_BOX_FLAGS][0],
+            buffer[MEDIA_HEADER_BOX_FLAGS][1],
+            buffer[MEDIA_HEADER_BOX_FLAGS][2],
         ];
-        let creation_time = u32::from_be_bytes(
-            buffer[get_range(seek, MEDIA_HEADER_BOX_CREATION_TIME)]
-                .try_into()
-                .unwrap(),
-        );
+        let creation_time =
+            u32::from_be_bytes(buffer[MEDIA_HEADER_BOX_CREATION_TIME].try_into().unwrap());
         let modification_time = u32::from_be_bytes(
-            buffer[get_range(seek, MEDIA_HEADER_BOX_MODIFICATION_TIME)]
+            buffer[MEDIA_HEADER_BOX_MODIFICATION_TIME]
                 .try_into()
                 .unwrap(),
         );
-        let timescale = u32::from_be_bytes(
-            buffer[get_range(seek, MEDIA_HEADER_BOX_TIMESCALE)]
-                .try_into()
-                .unwrap(),
-        );
-        let duration = u32::from_be_bytes(
-            buffer[get_range(seek, MEDIA_HEADER_BOX_DURATION)]
-                .try_into()
-                .unwrap(),
-        );
+        let timescale = u32::from_be_bytes(buffer[MEDIA_HEADER_BOX_TIMESCALE].try_into().unwrap());
+        let duration = u32::from_be_bytes(buffer[MEDIA_HEADER_BOX_DURATION].try_into().unwrap());
 
         MediaHeaderBox {
             header,
