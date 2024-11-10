@@ -3,7 +3,6 @@ use crate::utils::ReadHelper;
 use super::header::BoxHeader;
 use super::sample_table::SampleTableBox;
 
-const MEDIA_INFORMATION_BOX_HEADER_SIZE: usize = 8; // Size of BoxHeader (fixed)
 
 #[derive(Debug, Clone)]
 pub struct MediaInformationBox {

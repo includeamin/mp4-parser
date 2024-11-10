@@ -13,24 +13,6 @@ pub struct BoxHeader {
 }
 
 impl BoxHeader {
-    /// Constructs a `BoxHeader` with standard 32-bit size.
-    fn new(size: u32, box_type: [u8; 4]) -> Self {
-        Self {
-            size,
-            box_type,
-            extended_size: if size == 1 { Some(0) } else { None },
-        }
-    }
-
-    /// Constructs a `BoxHeader` with a 64-bit extended size.
-    fn new_with_extended_size(extended_size: u64, box_type: [u8; 4]) -> Self {
-        Self {
-            size: 1, // Indicates that an extended size is used
-            box_type,
-            extended_size: Some(extended_size),
-        }
-    }
-
     pub fn from_buffer(seek: usize, buffer: &[u8]) -> Self {
         // Read the standard 4-byte size field
         let size = u32::from_be_bytes(buffer[get_range(seek, HEADER_SIZE)].try_into().unwrap());

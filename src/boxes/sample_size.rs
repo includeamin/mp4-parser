@@ -6,7 +6,6 @@ const SAMPLE_SIZE_BOX_SAMPLE_SIZES: std::ops::RangeFrom<usize> = 12..;
 
 // Constants for fixed sizes
 const SAMPLE_SIZE_BOX_SAMPLE_COUNT_SIZE: usize = 4; // 4 bytes for sample_count
-const SAMPLE_SIZE_BOX_HEADER_SIZE: usize = 8; // Size of BoxHeader (fixed part)
 const SAMPLE_SIZE_BOX_SAMPLE_SIZE: usize = 4; // 4 bytes per sample size
 
 #[derive(Debug, Clone)]

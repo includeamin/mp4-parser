@@ -6,7 +6,6 @@ const TIME_TO_SAMPLE_BOX_ENTRIES: std::ops::RangeFrom<usize> = 12..;
 
 // Constants for fixed sizes
 const TIME_TO_SAMPLE_BOX_ENTRY_COUNT_SIZE: usize = 4; // 4 bytes for entry_count
-const TIME_TO_SAMPLE_BOX_HEADER_SIZE: usize = 8; // Size of BoxHeader (fixed part)
 const TIME_TO_SAMPLE_BOX_ENTRY_SIZE: usize = 8; // 8 bytes for each entry (sample_count + duration)
 
 #[derive(Debug, Clone)]

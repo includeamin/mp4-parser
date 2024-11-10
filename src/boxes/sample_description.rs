@@ -7,8 +7,6 @@ const SAMPLE_DESCRIPTION_BOX_SAMPLE_DESCRIPTION: std::ops::RangeFrom<usize> = 12
 
 // Constants for fixed sizes
 const SAMPLE_DESCRIPTION_BOX_SAMPLE_COUNT_SIZE: usize = 4; // 4 bytes for sample_count
-const SAMPLE_DESCRIPTION_BOX_HEADER_SIZE: usize = 8; // Size of BoxHeader (fixed part)
-const SAMPLE_DESCRIPTION_BOX_SAMPLE_DESCRIPTION_OFFSET: usize = 12; // Start of sample_description
 
 #[derive(Debug, Clone)]
 pub struct SampleDescriptionBox {

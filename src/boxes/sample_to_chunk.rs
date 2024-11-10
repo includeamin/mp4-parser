@@ -6,7 +6,6 @@ const SAMPLE_TO_CHUNK_BOX_ENTRIES: std::ops::RangeFrom<usize> = 12..;
 
 // Constants for fixed sizes
 const SAMPLE_TO_CHUNK_BOX_ENTRY_COUNT_SIZE: usize = 4; // 4 bytes for entry_count
-const SAMPLE_TO_CHUNK_BOX_HEADER_SIZE: usize = 8; // Size of BoxHeader (fixed part)
 const SAMPLE_TO_CHUNK_BOX_ENTRY_SIZE: usize = 12;
 
 #[derive(Debug, Clone)]
