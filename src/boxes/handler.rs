@@ -113,27 +113,35 @@ mod tests {
     use super::*;
 
     fn create_test_buffer() -> Vec<u8> {
-        let mut buffer = vec![];
+        let mock_buffer: &[u8] = &[
+            0x00, 0x00, 0x00, 0x29, // size = 41 bytes (adjusted)
+            0x68, 0x64, 0x6C, 0x72, // type = "hdlr"
+            0x01, 0x00, 0x00, 0x01, // Mock version and flags (4 bytes total)
+            0x76, 0x69, 0x64, 0x65, // flags
+            0x00, 0x00, 0x00, 0x00, // handler_type = "vide"
+            0x00, 0x00, 0x00, 0x00, // reserved
+            0x00, 0x00, 0x00, 0x00, // null-terminator
+            0x54, 0x65, 0x73, 0x74, // null-terminator
+            0x20, 0x48, 0x61, 0x6E, // null-terminator
+            0x64, 0x6C, 0x65, 0x72, 0x00, // null-terminator
+        ];
 
-        // Mock BoxHeader (assuming 8 bytes total: size (4 bytes), type (4 bytes))
-        buffer.extend_from_slice(&[0, 0, 0, 41]); // size = 41 bytes (adjusted)
-        buffer.extend_from_slice(b"hdlr"); // type = "hdlr"
+        mock_buffer.to_vec()
+    }
 
-        // Mock version and flags (4 bytes total)
-        buffer.push(1); // version
-        buffer.extend_from_slice(&[0, 0, 1]); // flags
+    #[test]
+    fn print_test_buffer() {
+        let buffer = create_test_buffer();
 
-        // Mock handler_type (4 bytes)
-        buffer.extend_from_slice(b"vide"); // handler_type = "vide"
-
-        // Mock reserved (12 bytes)
-        buffer.extend_from_slice(&[0; 12]); // reserved
-
-        // Mock name (null-terminated string)
-        buffer.extend_from_slice(b"Test Handler");
-        buffer.push(0); // null-terminator
-
-        buffer
+        // Print each byte as a hex value in the form: 0x00, 0x01, ...
+        print!("Byte array: [");
+        for (i, byte) in buffer.iter().enumerate() {
+            if i != 0 {
+                print!(", ");
+            }
+            print!("0x{:02X}", byte);
+        }
+        println!("]");
     }
 
     #[test]

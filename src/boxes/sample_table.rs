@@ -28,32 +28,40 @@ impl SampleTableBox {
     /// A `SampleTableBox` constructed from the given buffer.
     // pub fn from_buffer(buffer: &[u8]) -> Self {
     //     let header = BoxHeader::from_buffer(buffer);
-    //     let stsd_data = buffer[8..].to_vec();
-    //     let stsd = SampleDescriptionBox::from_buffer(&stsd_data);
+    //     if buffer.len() < 8 {
+    //         panic!("Buffer too small to contain stsd data");
+    //     }
     //
-    //     println!("{}",8+stsd.get_header().size());
-    //     let stts_data = buffer[8 + stsd.get_header().size()..].to_vec();
-    //     let stts = TimeToSampleBox::from_buffer(&stts_data);
+    //     let stsd_ofset = 8;
+    //     let stsd = SampleDescriptionBox::from_buffer(&buffer[stsd_ofset..]);
     //
-    //     println!("{}",8 + stsd.get_header().size() + stts.get_header().size());
-    //     let stsc_date = &buffer[8 + stsd.get_header().size() + stts.get_header().size()..];
-    //     let stsc = SampleToChunkBox::from_buffer(&stsc_date);
+    //     let stts_offset = stsd_ofset + stsd.get_header().size();
+    //     if buffer.len() < stts_offset {
+    //         panic!("Buffer too small to contain stts data");
+    //     }
+    //     let stts_data = &buffer[stts_offset..];
+    //     let stts = TimeToSampleBox::from_buffer(stts_data);
     //
-    //     let stsz_data = &buffer
-    //         [8 + stsd.get_header().size() + stts.get_header().size() + stsc.get_header().size()..];
-    //     let stsz = SampleSizeBox::from_buffer(&stsz_data);
+    //     let stsc_offset = stts_offset + stts.get_header().size();
+    //     if buffer.len() < stsc_offset {
+    //         panic!("Buffer too small to contain stsc data");
+    //     }
+    //     let stsc_data = &buffer[stsc_offset..];
+    //     let stsc = SampleToChunkBox::from_buffer(stsc_data);
     //
-    //     println!("{}",8
-    //         + stsd.get_header().size()
-    //         + stts.get_header().size()
-    //         + stsc.get_header().size()
-    //         + stsz.get_header().size());
-    //     let stco_data = &buffer[8
-    //         + stsd.get_header().size()
-    //         + stts.get_header().size()
-    //         + stsc.get_header().size()
-    //         + stsz.get_header().size()..];
-    //     let stco = ChunkOffsetBox::from_buffer(&stco_data);
+    //     let stsz_offset = stsc_offset + stsc.get_header().size();
+    //     if buffer.len() < stsz_offset {
+    //         panic!("Buffer too small to contain stsz data");
+    //     }
+    //     let stsz_data = &buffer[stsz_offset..];
+    //     let stsz = SampleSizeBox::from_buffer(stsz_data);
+    //
+    //     let stco_offset = stsz_offset + stsz.get_header().size();
+    //     if buffer.len() < stco_offset {
+    //         panic!("Buffer too small to contain stco data");
+    //     }
+    //     let stco_data = &buffer[stco_offset..];
+    //     let stco = ChunkOffsetBox::from_buffer(stco_data);
     //
     //     SampleTableBox {
     //         header,
@@ -71,34 +79,40 @@ impl SampleTableBox {
             panic!("Buffer too small to contain stsd data");
         }
 
-        let stsd_ofset = 8;
-        let stsd = SampleDescriptionBox::from_buffer(&buffer[stsd_ofset..]);
+        // Determine version to correctly parse stbl content.
+        let version = buffer[8]; // Version at offset 8
+        let mut stsd_offset = 8; // Adjust offset for stsd based on version
 
-        let stts_offset = stsd_ofset + stsd.get_header().size();
-        if buffer.len() < stts_offset {
-            panic!("Buffer too small to contain stts data");
+        if version == 0 {
+            // For version 0 (32-bit fields)
+            stsd_offset += 20;
+        } else if version == 1 {
+            // For version 1 (64-bit fields)
+            stsd_offset += 36;
+        } else {
+            panic!("Unsupported version");
         }
+
+        // Parse SampleDescriptionBox (stsd)
+        let stsd = SampleDescriptionBox::from_buffer(&buffer[stsd_offset..]);
+
+        // Parse TimeToSampleBox (stts)
+        let stts_offset = stsd_offset + stsd.get_header().size();
         let stts_data = &buffer[stts_offset..];
         let stts = TimeToSampleBox::from_buffer(stts_data);
 
+        // Parse SampleToChunkBox (stsc)
         let stsc_offset = stts_offset + stts.get_header().size();
-        if buffer.len() < stsc_offset {
-            panic!("Buffer too small to contain stsc data");
-        }
         let stsc_data = &buffer[stsc_offset..];
         let stsc = SampleToChunkBox::from_buffer(stsc_data);
 
+        // Parse SampleSizeBox (stsz)
         let stsz_offset = stsc_offset + stsc.get_header().size();
-        if buffer.len() < stsz_offset {
-            panic!("Buffer too small to contain stsz data");
-        }
         let stsz_data = &buffer[stsz_offset..];
         let stsz = SampleSizeBox::from_buffer(stsz_data);
 
+        // Parse ChunkOffsetBox (stco)
         let stco_offset = stsz_offset + stsz.get_header().size();
-        if buffer.len() < stco_offset {
-            panic!("Buffer too small to contain stco data");
-        }
         let stco_data = &buffer[stco_offset..];
         let stco = ChunkOffsetBox::from_buffer(stco_data);
 
@@ -111,6 +125,7 @@ impl SampleTableBox {
             stco,
         }
     }
+
 
     /// Getter for the `header` field.
     ///

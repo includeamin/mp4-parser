@@ -104,45 +104,87 @@ impl MediaHeaderBox {
         &self.header
     }
 }
-
 #[cfg(test)]
 mod tests {
     use super::*;
 
+    // Test the `from_buffer` function and getter methods for `MediaHeaderBox`
     #[test]
     fn test_media_header_box_from_buffer() {
-        let buffer: &[u8] = &[
-            // Mock BoxHeader for MediaHeaderBox (8 bytes)
-            0x00, 0x00, 0x00, 0x20, // size = 32 bytes
-            b'm', b'd', b'h', b'd', // type = "mdhd"
-            // Version and flags
-            0x01, // version = 1
-            0x00, 0x00, 0x03, // flags = [0, 0, 3]
-            // Creation time
-            0x00, 0x00, 0x00, 0x10, // creation_time = 16
-            // Modification time
-            0x00, 0x00, 0x00, 0x20, // modification_time = 32
-            // Timescale
-            0x00, 0x00, 0x03, 0xE8, // timescale = 1000
-            // Duration
-            0x00, 0x00, 0x07, 0xD0, // duration = 2000
+        // Create a mock buffer that matches the structure of a MediaHeaderBox
+        let mock_buffer: &[u8] = &[
+            // Mock BoxHeader data (8 bytes)
+            0x00, 0x00, 0x00, 0x14, // Box size
+            0x6D, 0x64, 0x68, 0x64, // Box type "mdhd"
+            // Version and flags (1 byte + 3 bytes)
+            0x01, // Version
+            0x00, 0x00, 0x00, // Flags
+            // Creation time (4 bytes)
+            0x00, 0x00, 0x00, 0x01, // Creation time
+            // Modification time (4 bytes)
+            0x00, 0x00, 0x00, 0x02, // Modification time
+            // Timescale (4 bytes)
+            0x00, 0x00, 0x00, 0x03, // Timescale
+            // Duration (4 bytes)
+            0x00, 0x00, 0x00, 0x04, // Duration
+            // Language (2 bytes, ISO-639-2 format)
+            0x6E, 0x61, // "eng" (English)
         ];
 
-        let mdhd_box = MediaHeaderBox::from_buffer(buffer);
+        // Call the `from_buffer` method to parse the buffer
+        let media_header_box = MediaHeaderBox::from_buffer(mock_buffer);
 
-        // Test BoxHeader
-        assert_eq!(mdhd_box.header().box_type(), "mdhd");
-        assert_eq!(mdhd_box.header().size(), 32);
+        // Assert the parsed values
+        assert_eq!(media_header_box.get_version(), 0x01); // Version should be 1
+        assert_eq!(media_header_box.get_flags(), [0x00, 0x00, 0x00]); // Flags should be 0, 0, 0
+        assert_eq!(media_header_box.get_creation_time(), 1); // Creation time should be 1
+        assert_eq!(media_header_box.get_modification_time(), 2); // Modification time should be 2
+        assert_eq!(media_header_box.get_timescale(), 3); // Timescale should be 3
+        assert_eq!(media_header_box.get_duration(), 4); // Duration should be 4
+        assert_eq!(media_header_box.get_language(), "eng"); // Language should be "eng" (English)
+    }
 
-        // Test MediaHeaderBox fields
-        assert_eq!(mdhd_box.get_version(), 1);
-        assert_eq!(mdhd_box.get_flags(), [0, 0, 3]);
-        assert_eq!(mdhd_box.get_creation_time(), 16);
-        assert_eq!(mdhd_box.get_modification_time(), 32);
-        assert_eq!(mdhd_box.get_timescale(), 1000);
-        assert_eq!(mdhd_box.get_duration(), 2000);
+    #[test]
+    fn test_media_header_box_invalid_language() {
+        // Create a mock buffer with an invalid language code
+        let mock_buffer: &[u8] = &[
+            // BoxHeader data
+            0x00, 0x00, 0x00, 0x14, // Box size
+            0x6D, 0x64, 0x68, 0x64, // Box type "mdhd"
+            // Version and flags
+            0x01, // Version
+            0x00, 0x00, 0x00, // Flags
+            // Creation time
+            0x00, 0x00, 0x00, 0x01, // Creation time
+            // Modification time
+            0x00, 0x00, 0x00, 0x02, // Modification time
+            // Timescale
+            0x00, 0x00, 0x00, 0x03, // Timescale
+            // Duration
+            0x00, 0x00, 0x00, 0x04, // Duration
+            // Invalid Language (not a recognized code)
+            0x12, 0x34, // Invalid language
+        ];
 
-        // Test total size calculation
-        assert_eq!(mdhd_box.header().size(), 32);
+        // Call the `from_buffer` method to parse the buffer
+        let media_header_box = MediaHeaderBox::from_buffer(mock_buffer);
+
+        // Assert that the language should be "unknown"
+        assert_eq!(media_header_box.get_language(), "unknown"); // Should return "unknown"
+    }
+
+    // Test the getters for BoxHeader (assuming BoxHeader has similar tests)
+    #[test]
+    fn test_box_header_getter() {
+        let mock_buffer: &[u8] = &[
+            0x00, 0x00, 0x00, 0x14, // Box size
+            0x6D, 0x64, 0x68, 0x64, // Box type "mdhd"
+        ];
+
+        let box_header = BoxHeader::from_buffer(mock_buffer);
+
+        // BoxHeader assertions
+        assert_eq!(box_header.size(), 0x14); // Size should be 20 bytes
+        assert_eq!(box_header.box_type(), "mdhd"); // Type should be "mdhd"
     }
 }

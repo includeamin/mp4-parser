@@ -28,23 +28,27 @@ impl MovieBox {
     /// # Returns:
     /// A `MovieBox` instance with the parsed data.
     pub fn from_buffer(buffer: &[u8]) -> Self {
-        // Parse the BoxHeader from the buffer
+        // Parse the BoxHeader from the buffer (first 8 bytes)
         let header = BoxHeader::from_buffer(buffer);
+        println!("size of header {}", header.size());
 
-        // Parse the MovieHeaderBox from the buffer
-        let mvhd = MovieHeaderBox::from_buffer(buffer);
+        // Parse the MovieHeaderBox (mvhd) that starts after the BoxHeader
+        let mvhd = MovieHeaderBox::from_buffer(&buffer[8..]);
+        println!("size of mvhd {}", mvhd.get_header().size());
 
-        // Parse the TrackBoxes from the buffer
+
+        // Start parsing TrackBoxes just after the `mvhd`
         let mut traks = Vec::new();
-        let mut trak_offset = MOVIE_BOX_TRAKS.start;
-        let end_of_movie_header = header.size() + mvhd.get_header().size(); // TODO: fix me
+        let mut trak_offset = 8 + mvhd.get_header().size(); // Adjusted to parse `TrackBox`es right after `mvhd`
+        let movie_box_end = header.size(); // End offset for the `MovieBox`
 
-        // Iterate and parse TrackBoxes until we reach the end of the movie box
-        while trak_offset < end_of_movie_header {
+        // Loop through `TrackBox`es until the end of `MovieBox`
+        while trak_offset < movie_box_end {
             let trak = TrackBox::from_buffer(&buffer[trak_offset..]);
+            println!("track size {}", trak.header().size());
             traks.push(trak);
 
-            // Move the offset forward by the size of the last parsed TrackBox
+            // Move offset forward by the size of the last parsed TrackBox
             trak_offset += traks.last().unwrap().header().size();
         }
 

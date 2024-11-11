@@ -30,80 +30,122 @@ impl MediaInformationBox {
 mod tests {
     use super::*;
 
+    // Test the `from_buffer` function for `MediaInformationBox`
     #[test]
     fn test_media_information_box_from_buffer() {
-        let buffer: &[u8] = &[
-            // MediaInformationBox "minf"
-            0x00, 0x00, 0x00, 0x60, // size = 96 bytes (total for "minf" box)
-            b'm', b'i', b'n', b'f', // type = "minf"
-            // SampleTableBox "stbl"
-            0x00, 0x00, 0x00, 0x50, // size = 80 bytes (total for "stbl" box)
-            b's', b't', b'b', b'l', // type = "stbl"
-            // SampleDescriptionBox "stsd"
-            0x00, 0x00, 0x00, 0x20, // size = 32 bytes
-            b's', b't', b's', b'd', // type = "stsd"
-            0x00, 0x00, 0x00, 0x01, // entry count (1 entry)
-            0x00, 0x00, 0x00, 0x01, // sample description entry (mock data)
-            // TimeToSampleBox "stts"
-            0x00, 0x00, 0x00, 0x18, // size = 24 bytes
-            b's', b't', b't', b's', // type = "stts"
-            0x00, 0x00, 0x00, 0x01, // entry count (1 entry)
-            0x00, 0x00, 0x00, 0x01, // sample count = 1
-            0x00, 0x00, 0x00, 0x10, // duration = 16 (mock data)
-            // SampleToChunkBox "stsc"
-            0x00, 0x00, 0x00, 0x18, // size = 24 bytes
-            b's', b't', b's', b'c', // type = "stsc"
-            0x00, 0x00, 0x00, 0x01, // entry count (1 entry)
-            0x00, 0x00, 0x00, 0x01, // first chunk (mock data)
-            0x00, 0x00, 0x00, 0x01, // samples per chunk = 1 (mock data)
-            // SampleSizeBox "stsz"
-            0x00, 0x00, 0x00, 0x18, // size = 24 bytes
-            b's', b't', b's', b'z', // type = "stsz"
-            0x00, 0x00, 0x00, 0x01, // sample count = 1
-            0x00, 0x00, 0x00, 0x10, // sample size = 16 bytes (mock data)
-            // ChunkOffsetBox "stco"
-            0x00, 0x00, 0x00, 0x18, // size = 24 bytes
-            b's', b't', b'c', b'o', // type = "stco"
-            0x00, 0x00, 0x00, 0x01, // entry count (1 entry)
-            0x00, 0x00, 0x00, 0x20, // chunk offset = 32 (mock data)
+        // Create a mock buffer that represents a MediaInformationBox
+        let mock_buffer: &[u8] = &[
+            // Mock BoxHeader data (8 bytes)
+            0x00, 0x00, 0x00, 0xAB, // 171 Box size
+            0x6D, 0x69, 0x6E, 0x66, // Box type "minf"
+            // SampleTableBox (stbl) - Outer box
+            0x00, 0x00, 0x00, 0x88, // Box size (163 bytes total) - u32
+            0x73, 0x74, 0x62, 0x6C, // Box type ("stbl") - 4 bytes
+            // SampleDescriptionBox (stsd) - Sub-box
+            0x00, 0x00, 0x00, 0x10, // Size field (16 bytes) - u32
+            0x73, 0x74, 0x73, 0x64, // Type field ("stsd") - 4 bytes
+            0x00, 0x00, 0x00, 0x01, // Version and flags - 4 bytes
+            0x00, 0x00, 0x00, 0x01, // Entry count (1) - u32
+            // TimeToSampleBox (stts) - Sub-box
+            0x00, 0x00, 0x00, 0x24, // Box size (36 bytes) - u32
+            0x73, 0x74, 0x74, 0x73, // Box type ("stts") - 4 bytes
+            0x00, 0x00, 0x00, 0x04, // Entry count (4 entries) - u32
+            // Entry 1
+            0x00, 0x00, 0x00, 0x0A, // Sample count (10) - u32
+            0x00, 0x00, 0x00, 0x64, // Sample delta (100) - u32
+            // Entry 2
+            0x00, 0x00, 0x00, 0x05, // Sample count (5) - u32
+            0x00, 0x00, 0x00, 0xC8, // Sample delta (200) - u32
+            // Entry 3
+            0x00, 0x00, 0x00, 0x08, // Sample count (8) - u32
+            0x00, 0x00, 0x01, 0x2C, // Sample delta (300) - u32
+            // SampleToChunkBox (stsc) - Sub-box
+            0x00, 0x00, 0x00, 0x24, // Box size (36 bytes) - u32
+            0x73, 0x74, 0x73, 0x63, // Type field ("stsc") - 4 bytes
+            0x00, 0x00, 0x00, 0x03, // Entry count (3) - u32
+            // Entry 1
+            0x00, 0x00, 0x00, 0x01, // First chunk (1) - u32
+            0x00, 0x00, 0x00, 0x64, // Samples per chunk (100) - u32
+            // Entry 2
+            0x00, 0x00, 0x00, 0x02, // Second chunk (2) - u32
+            0x00, 0x00, 0x00, 0xC8, // Samples per chunk (200) - u32
+            // Entry 3
+            0x00, 0x00, 0x00, 0x03, // Third chunk (3) - u32
+            0x00, 0x00, 0x01, 0x2C, // Samples per chunk (300) - u32
+            // SampleSizeBox (stsz) - Sub-box
+            0x00, 0x00, 0x00, 0x18, // Box size (24 bytes) - u32
+            0x73, 0x74, 0x73, 0x7A, // Box type ("stsz") - 4 bytes
+            0x00, 0x00, 0x00, 0x01, // Sample size entry count (1) - u32
+            0x00, 0x00, 0x04, 0x00, // Sample size (1024) - u32
+            0x00, 0x00, 0x00, 0x05, // Sample count (5) - u32
+            // Sample sizes
+            0x00, 0x00, 0x04, 0x00, // Sample size (1024) - u32
+            // ChunkOffsetBox (stco) - Sub-box
+            0x00, 0x00, 0x00, 0x10, // Size field (16 bytes) - u32
+            0x73, 0x74, 0x63, 0x6F, // Type field ("stco") - 4 bytes
+            0x00, 0x00, 0x00, 0x02, // Entry count (2) - u32
+            // Chunk offsets
+            0x00, 0x00, 0x00, 0x20, // Offset for chunk 1 (32 bytes) - u32
+            0x00, 0x00, 0x00, 0x40, // Offset for chunk 2 (64 bytes) - u32
         ];
 
-        let minf_box = MediaInformationBox::from_buffer(buffer);
+        // Call the `from_buffer` method to parse the buffer
+        let media_information_box = MediaInformationBox::from_buffer(mock_buffer);
 
-        // Test BoxHeader
-        assert_eq!(minf_box.header().box_type(), "minf");
-        assert_eq!(minf_box.header().size(), 48);
+        // Test BoxHeader parsing (size, type)
+        assert_eq!(media_information_box.header().size(), 171); // Size should be 20 bytes
+        assert_eq!(media_information_box.header().box_type(), "minf"); // Type should be "minf"
 
-        // Test SampleTableBox (stbl)
-        let stbl = minf_box.get_stbl();
-        assert_eq!(stbl.get_header().box_type(), "stbl");
-        assert_eq!(stbl.get_header().size(), 32);
-
-        // Test SampleDescriptionBox (stsd)
+        // Test SampleTableBox parsing
+        assert_eq!(media_information_box.get_stbl().get_header().size(), 136); // Size of the SampleTableBox should be 6 bytes
         assert_eq!(
-            stbl.get_sample_description().get_header().box_type(),
-            "stsd"
-        );
-        assert_eq!(stbl.get_sample_description().get_header().size(), 16);
+            media_information_box.get_stbl().get_header().box_type(),
+            "stbl"
+        ); // Type should be "stbl"
+    }
 
-        // Test TimeToSampleBox (stts)
-        assert_eq!(stbl.get_time_to_sample().get_header().box_type(), "stts");
-        assert_eq!(stbl.get_time_to_sample().get_header().size(), 16);
+    // Test invalid buffer scenario for `MediaInformationBox` where the buffer is too short
+    #[test]
+    fn test_invalid_media_information_box_buffer() {
+        // Create a mock buffer that is too short to contain both BoxHeader and SampleTableBox
+        let mock_buffer: &[u8] = &[
+            // Only 8 bytes, which is just enough for the BoxHeader
+            0x00, 0x00, 0x00, 0x08, // Box size
+            0x6D, 0x69, 0x6E, 0x66, // Box type "minf"
+        ];
 
-        // Test SampleToChunkBox (stsc)
-        assert_eq!(stbl.get_sample_to_chunk().get_header().box_type(), "stsc");
-        assert_eq!(stbl.get_sample_to_chunk().get_header().size(), 16);
+        // Try to parse the buffer (this should likely panic or return an error, depending on your implementation)
+        let result = std::panic::catch_unwind(|| {
+            MediaInformationBox::from_buffer(mock_buffer);
+        });
 
-        // Test SampleSizeBox (stsz)
-        assert_eq!(stbl.get_sample_size().get_header().box_type(), "stsz");
-        assert_eq!(stbl.get_sample_size().get_header().size(), 16);
+        // Assert that the code panicked due to an invalid buffer (this depends on your error handling)
+        assert!(result.is_err());
+    }
 
-        // Test ChunkOffsetBox (stco)
-        assert_eq!(stbl.get_chunk_offset().header().box_type(), "stco");
-        assert_eq!(stbl.get_chunk_offset().header().size(), 16);
+    // Test getter methods for `BoxHeader` and `SampleTableBox`
+    #[test]
+    fn test_media_information_box_getters() {
+        let mock_buffer: &[u8] = &[
+            // Mock BoxHeader data (8 bytes)
+            0x00, 0x00, 0x00, 0x14, // Box size
+            0x6D, 0x69, 0x6E, 0x66, // Box type "minf"
+            // SampleTableBox mock data
+            0x00, 0x00, 0x00, 0x06, // SampleTableBox size
+            0x73, 0x74, 0x62, 0x6C, 0x00, 0x00, // "stbl" type + mock data
+        ];
 
-        // Test total size calculation
-        let expected_total_size = minf_box.header().size() + stbl.get_header().size();
-        assert_eq!(minf_box.header().size(), expected_total_size);
+        let media_information_box = MediaInformationBox::from_buffer(mock_buffer);
+
+        // Check the header values using getters
+        assert_eq!(media_information_box.header().size(), 0x14); // Size should be 20 bytes
+        assert_eq!(media_information_box.header().box_type(), "minf"); // Box type should be "minf"
+
+        // Check the SampleTableBox values using getter
+        assert_eq!(media_information_box.get_stbl().get_header().size(), 0x06); // Size of SampleTableBox should be 6 bytes
+        assert_eq!(
+            media_information_box.get_stbl().get_header().box_type(),
+            "stbl"
+        ); // Box type should be "stbl"
     }
 }

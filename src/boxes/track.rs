@@ -25,10 +25,19 @@ impl TrackBox {
     /// # Returns:
     /// A `TrackBox` instance with the parsed data.
     pub fn from_buffer(buffer: &[u8]) -> Self {
+        // Parse the BoxHeader (first 8 bytes)
         let header = BoxHeader::from_buffer(buffer);
-        let tkhd = TrackHeaderBox::from_buffer(buffer);
-        let mdia = MediaBox::from_buffer(buffer);
+        println!("headr size of track box {}", header.size());
 
+        // Parse the TrackHeaderBox (tkhd), which starts after the BoxHeader (8 bytes)
+        let tkhd = TrackHeaderBox::from_buffer(&buffer[8..]);
+        println!("headr size oftkhd {}", tkhd.get_header().size());
+
+        // Parse the MediaBox (mdia), which starts after the tkhd box
+        // We use the size of the tkhd box to calculate the correct offset
+        let mdia = MediaBox::from_buffer(&buffer[8 + tkhd.get_header().size()..]);
+
+        // Return the parsed TrackBox
         TrackBox { header, tkhd, mdia }
     }
 

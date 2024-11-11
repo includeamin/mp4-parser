@@ -24,9 +24,13 @@ impl SampleDescriptionBox {
                 .expect("Failed to read sample_count"),
         );
 
-        // Read the sample_description field (variable-length)
-        let sample_description =
-            buffer[SAMPLE_DESCRIPTION_BOX_SAMPLE_DESCRIPTION.start..header.size()].to_vec();
+        println!("PSampleDescriptionBox{}",header.size());
+        let mut sample_description= Vec::new();
+        if header.size() > SAMPLE_DESCRIPTION_BOX_SAMPLE_DESCRIPTION.start {
+            // Read the sample_description field (variable-length)
+            sample_description =
+                buffer[SAMPLE_DESCRIPTION_BOX_SAMPLE_DESCRIPTION.start..header.size()].to_vec();
+        }
 
         SampleDescriptionBox {
             header,

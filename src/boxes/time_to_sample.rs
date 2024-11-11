@@ -28,6 +28,15 @@ impl TimeToSampleBox {
         let entry_count =
             u32::from_be_bytes(buffer[TIME_TO_SAMPLE_BOX_ENTRY_COUNT].try_into().unwrap());
 
+        println!("Pentry_count{}", entry_count);
+        if entry_count == 0 {
+            return  TimeToSampleBox {
+                header,
+                entry_count,
+                entries: Vec::new(),
+            }
+        }
+
         // Now parse the entries, assuming entries start after entry_count
         let mut entries = Vec::new();
 
