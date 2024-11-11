@@ -1,8 +1,5 @@
 use super::header::BoxHeader;
 
-// Constants for sizes
-const SIZE_ENTRY_COUNT: usize = 4; // Size of the entry count (4 bytes)
-const SIZE_CHUNK_OFFSET_ENTRY: usize = 4; // Size of each chunk offset (4 bytes)
 const CHUNK_OFFSET_BOX_ENTRY_COUNT: std::ops::Range<usize> = 8..12;
 const CHUNK_OFFSET_BOX_CHUNK_OFFSETS: std::ops::RangeFrom<usize> = 12..;
 

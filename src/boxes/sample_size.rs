@@ -3,10 +3,6 @@ use super::header::BoxHeader;
 const SAMPLE_SIZE_BOX_SAMPLE_COUNT: std::ops::Range<usize> = 8..12;
 const SAMPLE_SIZE_BOX_SAMPLE_SIZES: std::ops::RangeFrom<usize> = 12..;
 
-// Constants for fixed sizes
-const SAMPLE_SIZE_BOX_SAMPLE_COUNT_SIZE: usize = 4; // 4 bytes for sample_count
-const SAMPLE_SIZE_BOX_SAMPLE_SIZE: usize = 4; // 4 bytes per sample size
-
 #[derive(Debug, Clone)]
 pub struct SampleSizeBox {
     header: BoxHeader,      // Size and type at offset 0–7
@@ -86,7 +82,7 @@ mod tests {
         assert_eq!(sample_size_box.get_sample_count(), 3);
 
         // Test sample_sizes extraction
-        let expected_sample_sizes = vec![1, 2, 3];
+        let expected_sample_sizes = [1, 2, 3];
         assert_eq!(
             sample_size_box.get_sample_sizes(),
             &expected_sample_sizes[..]
@@ -146,7 +142,7 @@ mod tests {
         assert_eq!(sample_size_box.get_sample_count(), 3);
 
         // Test sample_sizes extraction
-        let expected_sample_sizes = vec![1, 2, 3];
+        let expected_sample_sizes = [1, 2, 3];
         assert_eq!(
             sample_size_box.get_sample_sizes(),
             &expected_sample_sizes[..]

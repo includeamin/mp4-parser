@@ -4,9 +4,6 @@ use super::header::BoxHeader;
 const SAMPLE_DESCRIPTION_BOX_SAMPLE_COUNT: std::ops::Range<usize> = 8..12;
 const SAMPLE_DESCRIPTION_BOX_SAMPLE_DESCRIPTION: std::ops::RangeFrom<usize> = 12..;
 
-// Constants for fixed sizes
-const SAMPLE_DESCRIPTION_BOX_SAMPLE_COUNT_SIZE: usize = 4; // 4 bytes for sample_count
-
 #[derive(Debug, Clone)]
 pub struct SampleDescriptionBox {
     header: BoxHeader,           // Size and type at offset 0–7
@@ -28,7 +25,8 @@ impl SampleDescriptionBox {
         );
 
         // Read the sample_description field (variable-length)
-        let sample_description = buffer[SAMPLE_DESCRIPTION_BOX_SAMPLE_DESCRIPTION].to_vec();
+        let sample_description =
+            buffer[SAMPLE_DESCRIPTION_BOX_SAMPLE_DESCRIPTION.start..header.size()].to_vec();
 
         SampleDescriptionBox {
             header,

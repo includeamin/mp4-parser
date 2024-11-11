@@ -1,7 +1,6 @@
 mod boxes;
 mod mp4;
 mod shared_consts;
-mod utils;
 
 use boxes::header::BoxHeader;
 use mp4::MP4;

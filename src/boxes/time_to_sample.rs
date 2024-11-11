@@ -3,10 +3,6 @@ use super::header::BoxHeader;
 const TIME_TO_SAMPLE_BOX_ENTRY_COUNT: std::ops::Range<usize> = 8..12;
 const TIME_TO_SAMPLE_BOX_ENTRIES: std::ops::RangeFrom<usize> = 12..;
 
-// // Constants for fixed sizes
-const TIME_TO_SAMPLE_BOX_ENTRY_COUNT_SIZE: usize = 4; // 4 bytes for entry_count
-const TIME_TO_SAMPLE_BOX_ENTRY_SIZE: usize = 8; // 8 bytes for each entry (sample_count + duration)
-
 #[derive(Debug, Clone)]
 pub struct TimeToSampleBox {
     header: BoxHeader,        // Size and type at offset 0–7
@@ -26,7 +22,6 @@ impl TimeToSampleBox {
     ///
     /// A `TimeToSampleBox` constructed from the given buffer.
     pub fn from_buffer(buffer: &[u8]) -> Self {
-        // Assuming `BoxHeader::from_buffer` correctly reads the header from the beginning of the buffer
         let header = BoxHeader::from_buffer(buffer);
 
         // Parse entry count (4 bytes at position TIME_TO_SAMPLE_BOX_ENTRY_COUNT)
