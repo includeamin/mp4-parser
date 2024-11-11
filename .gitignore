@@ -1,10 +1,6 @@
 # Compiled output
 /target/
 
-# Cargo files
-/Cargo.lock
-/Cargo.toml
-
 # Optional files
 /.cargo/registry/*
 !.cargo/registry/index/*
